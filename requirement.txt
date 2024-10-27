@@ -1,0 +1,6 @@
+pip install markupsafe
+
+pip install beautifulsoup4
+pip3 install flask-session
+
+pip install flask flask-session notion-client beautifulsoup4

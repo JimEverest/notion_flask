@@ -1,0 +1,98 @@
+<nav class="col-md-2 d-none d-md-block bg-light sidebar">
+    <div class="sidebar-sticky">
+        <ul class="nav flex-column" id="sidebar-menu">
+            {% for page in page_tree %}
+                <li class="nav-item">
+                    <div class="nav-link">
+                        {% if page.has_children %}
+                            <span class="toggle-icon" onclick="toggleSubPages(this, '{{ page.id }}')"></span>
+                        {% else %}
+                            <span class="no-toggle-icon"></span>
+                        {% endif %}
+                        <a href="{{ url_for('view_page', page_id=page.id) }}">{{ page.name }}</a>
+                    </div>
+                    <ul class="nav flex-column ml-3" style="display: none;"></ul>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</nav>
+
+
+
+<script>
+function toggleSubPages(element, pageId) {
+    const sublist = element.parentElement.nextElementSibling;
+    if (sublist.style.display === 'none') {
+        // 展开子页面
+        sublist.style.display = 'block';
+        element.classList.add('expanded');
+        if (!sublist.hasChildNodes()) {
+            // 仅当子列表为空时，发送 AJAX 请求加载子页面
+            fetch('/get_sub_pages/' + pageId)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(function(page) {
+                        const li = document.createElement('li');
+                        li.className = 'nav-item';
+                        const div = document.createElement('div');
+                        div.className = 'nav-link';
+
+                        if (page.has_children) {
+                            const span = document.createElement('span');
+                            span.className = 'toggle-icon';
+                            span.onclick = function() { toggleSubPages(this, page.id); };
+                            div.appendChild(span);
+                        } else {
+                            const span = document.createElement('span');
+                            span.className = 'no-toggle-icon';
+                            div.appendChild(span);
+                        }
+
+                        const a = document.createElement('a');
+                        a.href = '/page/' + page.id;
+                        a.textContent = page.name;
+                        div.appendChild(a);
+
+                        li.appendChild(div);
+
+                        const childUl = document.createElement('ul');
+                        childUl.className = 'nav flex-column ml-3';
+                        childUl.style.display = 'none';
+                        li.appendChild(childUl);
+
+                        sublist.appendChild(li);
+                    });
+                });
+        }
+    } else {
+        // 折叠子页面
+        sublist.style.display = 'none';
+        element.classList.remove('expanded');
+    }
+}
+</script>
+
+
+<!-- 
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleIcons = document.querySelectorAll('.toggle-icon');
+        toggleIcons.forEach(function(icon) {
+            icon.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const sublist = this.parentElement.parentElement.querySelector('ul');
+                if (sublist) {
+                    if (sublist.style.display === 'none') {
+                        sublist.style.display = 'block';
+                        this.textContent = '▼';
+                    } else {
+                        sublist.style.display = 'none';
+                        this.textContent = '▶';
+                    }
+                }
+            });
+        });
+    });
+</script> -->

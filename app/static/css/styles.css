@@ -1,0 +1,137 @@
+/* 自定义样式 */
+
+.sidebar {
+    height: 100vh;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+}
+
+.callout {
+    padding: 10px;
+    border-left: 4px solid #ccc;
+    background-color: #f9f9f9;
+    margin-bottom: 10px;
+}
+
+.toggle-block .toggle-content {
+    display: none;
+    padding-left: 20px;
+}
+
+.toggle-block.open .toggle-content {
+    display: block;
+}
+
+.toggle-title {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.to_do {
+    display: flex;
+    align-items: center;
+}
+
+.to_do input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+
+table, th, td {
+    border: 1px solid #ccc;
+}
+
+pre code {
+    display: block;
+    padding: 10px;
+    background-color: #f5f5f5;
+    overflow-x: auto;
+}
+
+audio {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.navbar-nav .nav-item .nav-link {
+    color: #000;
+}
+
+.navbar-nav .nav-item .nav-link:hover {
+    color: #007bff;
+}
+
+.nav-item .toggle-icon {
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.sidebar-sticky {
+    position: relative;
+    top: 0;
+    height: calc(100vh - 56px);
+    padding-top: 20px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.sidebar .nav-link {
+    color: #000;
+}
+
+.sidebar .nav-link:hover {
+    color: #007bff;
+}
+
+
+.toggle-icon {
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.toggle-icon::selection {
+    background: none;
+}
+
+
+
+/* styles.css */
+
+/* 确保所有页面名称左侧都有一个占位符，使其对齐 */
+.toggle-icon,
+.no-toggle-icon {
+    display: inline-block;
+    width: 16px;
+    text-align: center;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.no-toggle-icon {
+    visibility: hidden;  /* 隐藏占位符，但保留空间 */
+}
+
+/* 美化展开/折叠图标 */
+.toggle-icon {
+    font-family: Arial, sans-serif;
+}
+
+.toggle-icon::after {
+    content: '▶';
+}
+
+.toggle-icon.expanded::after {
+    content: '▼';
+}
+
+
+

@@ -1,0 +1,10 @@
+app/__pycache__/__init__.cpython-310.pyc
+*.pyc
+app/backup
+.vscode/*
+prompt/1.txt
+sample/*
+app/config/config.json
+request.txt
+flask_session/*
+app/notion_block_converter.py
