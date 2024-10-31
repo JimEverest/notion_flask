@@ -135,3 +135,27 @@ audio {
 
 
 
+[data-notion-block-type="to_do"] {
+    display: flex;
+    align-items: center;
+}
+
+[data-notion-block-type="to_do"] input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+[data-notion-block-type="to_do"] input[type="checkbox"]:checked + span {
+    text-decoration: line-through;
+    color: gray;
+}
+
+
+.to-do-text {
+    display: inline;
+    margin-left: 5px;
+}
+
+.to-do-text.checked {
+    text-decoration: line-through;
+    color: gray;
+} 

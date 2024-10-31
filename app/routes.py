@@ -77,8 +77,6 @@ def view_page(page_id):
         return redirect(url_for('login'))
     user_role = session.get('role')
     user_permissions = config['roles'][user_role]['operation']
-    page_title = get_page_title(page_id)
-    page_tree = get_page_tree()
     if request.method == 'POST':
         if 'write' in user_permissions:
             new_content_html = request.form['content']
@@ -100,6 +98,9 @@ def view_page(page_id):
         else:
             flash('您没有权限编辑此页面')
             return redirect(url_for('view_page', page_id=page_id))
+            
+    page_title = get_page_title(page_id)
+    page_tree = get_page_tree()
     content = get_block_content(page_id)
     return render_template(
         'page.html',
