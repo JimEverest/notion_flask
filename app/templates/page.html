@@ -81,7 +81,6 @@
                     'RealTimeCollaborativeTrackChanges',
                     'RealTimeCollaborativeRevisionHistory',
                     'PresenceList',
-                    'Comments',
                     'TrackChanges',
                     'TrackChangesData',
                     'RevisionHistory',
@@ -98,12 +97,13 @@
                     'TableOfContents',
                     'PasteFromOfficeEnhanced',
                     'CaseChange',
-                    "HtmlEmbed",
+                    // "HtmlEmbed",
+                    // 'HtmlEmbed',
                     // These two are commercial, but you can try them out without registering to a trial.
                     // 'ExportPdf',
                     // 'ExportWord',
                 ],
-
+                extraPlugins: ['GeneralHtmlSupport'],
 
                 language: 'en',
                 licenseKey: '',
@@ -128,6 +128,7 @@
                         { language: 'python', label: 'Python' },
                         { language: 'javascript', label: 'JavaScript' },
                         { language: 'html', label: 'HTML' },
+                        { language: 'java', label: 'Java' },
                         { language: 'css', label: 'CSS' }
                     ]
                 },
@@ -147,6 +148,7 @@
                         }
                     }
                 },
+                allowedContent: true,
                 extraAllowedContent: 'audio[*]{*}(*);source[*]{*}(*)',
                 htmlSupport: {
                     allow: [
@@ -163,7 +165,19 @@
                             styles: true
                         },
                         {
-                            name: /.*/,
+                            name: 'input',
+                            attributes: {
+                                type: true,
+                                checked: true,
+                                disabled: true,
+                                class: true,
+                                'data-notion-block-id': true,
+                            },
+                            classes: true,
+                            styles: true,
+                        },
+                        {
+                            name: /^.*$/,
                             attributes: true,
                             classes: true,
                             styles: true

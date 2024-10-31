@@ -83,8 +83,18 @@ def view_page(page_id):
         if 'write' in user_permissions:
             new_content_html = request.form['content']
             new_blocks = html_to_notion_blocks(new_content_html)
-            # 清空原有内容并添加新内容
-            notion.blocks.children.replace(block_id=page_id, children=new_blocks)
+            # 清空原有内容并添加新内容 - not working as -- AttributeError: 'BlocksChildrenEndpoint' object has no attribute 'replace'
+            # notion.blocks.children.replace(block_id=page_id, children=new_blocks)
+
+            # 获取现有的子块
+            existing_children = notion.blocks.children.list(block_id=page_id)
+            # 遍历并删除所有子块
+            for child in existing_children['results']:
+                notion.blocks.update(block_id=child['id'], archived=True)
+            # 追加新的子块
+            notion.blocks.children.append(block_id=page_id, children=new_blocks)
+
+
             flash('页面已更新')
             return redirect(url_for('view_page', page_id=page_id))
         else:

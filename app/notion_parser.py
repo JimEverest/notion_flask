@@ -3,7 +3,7 @@
 from notion_client import Client
 from bs4 import BeautifulSoup
 import json
-
+ 
 # 加载配置
 config = {}
 with open('app/config/config.json') as config_file:
@@ -42,36 +42,6 @@ def get_page_tree():
         pages.append(root_page)
     return pages
 
-
-# def get_page_tree():
-#     def fetch_children(page_id):
-#         try:
-#             children = notion.blocks.children.list(block_id=page_id)['results']
-#         except Exception as e:
-#             print(f"Error fetching children for page {page_id}: {e}")
-#             return []
-#         pages = []
-#         for child in children:
-#             if child['type'] == 'child_page':
-#                 page = {
-#                     'id': child['id'],
-#                     'name': child['child_page']['title'],
-#                     'children': fetch_children(child['id'])
-#                 }
-#                 pages.append(page)
-#         return pages
-
-#     page_tree = []
-#     for root_page_id in page_ids:
-#         page_title = get_page_title(root_page_id)
-#         root_page = {
-#             'id': root_page_id,
-#             'name': page_title,
-#             'children': fetch_children(root_page_id)
-#         }
-#         page_tree.append(root_page)
-#     return page_tree
-
 def get_block_content(block_id):
     content = ''
     try:
@@ -90,32 +60,82 @@ def parse_block(block):
     if block_type == 'paragraph':
         text = rich_text_to_html(block['paragraph']['rich_text'])
         content += f'<p data-notion-block-type="paragraph" data-notion-block-id="{block_id}">{text}</p>'
+        # 处理子块
+        if block['has_children']:
+            children = notion.blocks.children.list(block_id=block_id)['results']
+            for child in children:
+                content += parse_block(child)
 
     elif block_type == 'heading_1':
         text = rich_text_to_html(block['heading_1']['rich_text'])
         content += f'<h1 data-notion-block-type="heading_1" data-notion-block-id="{block_id}">{text}</h1>'
+        if block['has_children']:
+            children = notion.blocks.children.list(block_id=block_id)['results']
+            for child in children:
+                content += parse_block(child)
 
     elif block_type == 'heading_2':
         text = rich_text_to_html(block['heading_2']['rich_text'])
         content += f'<h2 data-notion-block-type="heading_2" data-notion-block-id="{block_id}">{text}</h2>'
+        if block['has_children']:
+            children = notion.blocks.children.list(block_id=block_id)['results']
+            for child in children:
+                content += parse_block(child)
 
     elif block_type == 'heading_3':
         text = rich_text_to_html(block['heading_3']['rich_text'])
         content += f'<h3 data-notion-block-type="heading_3" data-notion-block-id="{block_id}">{text}</h3>'
+        if block['has_children']:
+            children = notion.blocks.children.list(block_id=block_id)['results']
+            for child in children:
+                content += parse_block(child)
 
     elif block_type == 'bulleted_list_item':
         text = rich_text_to_html(block['bulleted_list_item']['rich_text'])
-        content += f'<ul data-notion-block-type="bulleted_list" data-notion-block-id="{block_id}"><li>{text}</li></ul>'
+        content += f'<ul data-notion-block-type="bulleted_list" data-notion-block-id="{block_id}"><li>{text}'
+        # 处理子块
+        if block['has_children']:
+            content += '<ul>'
+            children = notion.blocks.children.list(block_id=block_id)['results']
+            for child in children:
+                content += parse_block(child)
+            content += '</ul>'
+        content += '</li></ul>'
 
     elif block_type == 'numbered_list_item':
         text = rich_text_to_html(block['numbered_list_item']['rich_text'])
-        content += f'<ol data-notion-block-type="numbered_list" data-notion-block-id="{block_id}"><li>{text}</li></ol>'
+        content += f'<ol data-notion-block-type="numbered_list" data-notion-block-id="{block_id}"><li>{text}'
+        # 处理子块
+        if block['has_children']:
+            content += '<ol>'
+            children = notion.blocks.children.list(block_id=block_id)['results']
+            for child in children:
+                content += parse_block(child)
+            content += '</ol>'
+        content += '</li></ol>'
 
     elif block_type == 'to_do':
+        # 获取任务内容和完成状态
         text = rich_text_to_html(block['to_do']['rich_text'])
         checked = block['to_do']['checked']
-        checkbox = '<input type="checkbox" disabled' + (' checked' if checked else '') + '>'
-        content += f'<div data-notion-block-type="to_do" data-notion-block-id="{block_id}">{checkbox} {text}</div>'
+        # 构建 CKEditor 的待办事项 HTML
+        checkbox = f'<input type="checkbox" tabindex="-1" {"checked" if checked else ""}>'
+        # 包装为 CKEditor 的待办事项格式
+        content += f'''
+        <ul class="todo-list" data-notion-block-type="to_do" data-notion-block-id="{block_id}">
+            <li>
+                <span class="todo-list__label">
+                    <span contenteditable="false">{checkbox}</span>
+                    <span class="todo-list__label__description">{text}</span>
+                </span>
+            </li>
+        </ul>
+        '''
+        # 处理子块（如果有）
+        if block['has_children']:
+            children = notion.blocks.children.list(block_id=block_id)['results']
+            for child in children:
+                content += parse_block(child)
 
     elif block_type == 'divider':
         content += f'<hr data-notion-block-type="divider" data-notion-block-id="{block_id}"/>'
@@ -124,11 +144,6 @@ def parse_block(block):
         image_url = block['image'].get('file', {}).get('url', '') or block['image'].get('external', {}).get('url', '')
         caption = rich_text_to_html(block['image'].get('caption', []))
         content += f'<figure data-notion-block-type="image" data-notion-block-id="{block_id}"><img src="{image_url}" alt="{caption}"/><figcaption>{caption}</figcaption></figure>'
-
-    # elif block_type == 'callout':
-    #     text = rich_text_to_html(block['callout']['rich_text'])
-    #     icon = block['callout'].get('icon', {}).get('emoji', '')
-    #     content += f'<div class="callout" data-notion-block-type="callout" data-notion-block-id="{block_id}">{icon} {text}</div>'
 
     elif block_type == 'callout':
         text = rich_text_to_html(block['callout']['rich_text'])
@@ -193,6 +208,7 @@ def parse_block(block):
     elif block_type == 'toggle':
         title = rich_text_to_html(block['toggle']['rich_text'])
         content += f'<details data-notion-block-type="toggle" data-notion-block-id="{block_id}"><summary>{title}</summary>'
+        # 处理子块
         if block['has_children']:
             children = notion.blocks.children.list(block_id=block_id)['results']
             for child in children:
@@ -237,25 +253,54 @@ def rich_text_to_html(rich_text_array):
         html_content += text
     return html_content
 
+# def html_to_notion_blocks(html_content):
+#     soup = BeautifulSoup(html_content, 'html.parser')
+#     blocks = []
+#     for element in soup.find_all(recursive=False):
+#         block = element_to_notion_block(element)
+#         if block:
+#             blocks.append(block)
+#     return blocks
+
 def html_to_notion_blocks(html_content):
     soup = BeautifulSoup(html_content, 'html.parser')
     blocks = []
+    
     for element in soup.find_all(recursive=False):
         block = element_to_notion_block(element)
-        if block:
+        
+        # Check if block is a list
+        if isinstance(block, list):
+            for item in block:
+                if isinstance(item, dict) and 'type' in item:  # Ensure each item in list has 'type'
+                    blocks.append(item)
+        
+        # Check if block is an object with 'type' attribute
+        elif isinstance(block, dict) and 'type' in block:
             blocks.append(block)
+    
     return blocks
-
+    
 def element_to_notion_block(element):
     block_type = element.get('data-notion-block-type', 'paragraph')
 
     if block_type == 'paragraph':
-        return {
+        block = {
             "type": "paragraph",
             "paragraph": {
                 "rich_text": html_to_rich_text(element)
             }
         }
+        # 处理子元素
+        children = []
+        for child_element in element.find_all(recursive=False):
+            child_block = element_to_notion_block(child_element)
+            if child_block:
+                children.append(child_block)
+        if children:
+            block['has_children'] = True
+            block['children'] = children
+        return block
 
     elif block_type == 'heading_1':
         return {
@@ -281,22 +326,120 @@ def element_to_notion_block(element):
             }
         }
 
+    # elif block_type == 'bulleted_list':
+    #     return list_element_to_notion_block(element, 'bulleted_list_item')
     elif block_type == 'bulleted_list':
-        return list_element_to_notion_block(element, 'bulleted_list_item')
+        items = element.find_all('li', recursive=False)
+        blocks = []
+        for item in items:
+            block = {
+                "type": "bulleted_list_item",
+                "bulleted_list_item": {
+                    "rich_text": html_to_rich_text(item)
+                }
+            }
+            # 处理子元素
+            children_elements = item.find_all(['ul', 'ol'], recursive=False)
+            if children_elements:
+                block['has_children'] = True
+                block['children'] = []
+                for child_element in children_elements:
+                    child_blocks = element_to_notion_block(child_element)
+                    if child_blocks:
+                        block['children'].extend(child_blocks)
+            blocks.append(block)
+        return blocks
 
     elif block_type == 'numbered_list':
         return list_element_to_notion_block(element, 'numbered_list_item')
 
-    elif block_type == 'to_do':
-        checkbox = element.find('input', {'type': 'checkbox'})
-        checked = checkbox.has_attr('checked') if checkbox else False
-        return {
-            "type": "to_do",
-            "to_do": {
-                "rich_text": html_to_rich_text(element),
-                "checked": checked
-            }
-        }
+    # elif block_type == 'to_do':
+    #     checkbox = element.find('input', {'type': 'checkbox'})
+    #     checked = checkbox.has_attr('checked') if checkbox else False
+    #     return {
+    #         "type": "to_do",
+    #         "to_do": {
+    #             "rich_text": html_to_rich_text(element),
+    #             "checked": checked
+    #         }
+    #     }
+
+    # v2 - Extra <span class=todo-list__label> Element causing issues
+    # elif element.name == 'ul' and 'todo-list' in element.get('class', []):
+    #     # 处理待办事项列表
+    #     blocks = []
+    #     for li in element.find_all('li', recursive=False):
+    #         label_span = li.find('span', class_='todo-list__label')
+    #         if label_span:
+    #             # 获取复选框和描述
+    #             checkbox_input = label_span.find('input', type='checkbox')
+    #             description_span = label_span.find('span', class_='todo-list__label__description')
+    #                                                             #    todo-list__label__description
+    #             text = html_to_rich_text(description_span)
+    #             checked = checkbox_input.has_attr('checked')
+    #             block = {
+    #                 'type': 'to_do',
+    #                 'to_do': {
+    #                     'rich_text': text,
+    #                     'checked': checked
+    #                 }
+    #             }
+    #             # 如果原始元素有 data-notion-block-id，则添加到块中
+    #             block_id = element.get('data-notion-block-id')
+    #             if block_id:
+    #                 block['id'] = block_id
+    #             blocks.append(block)
+    #     return blocks
+
+    elif element.name == 'ul' and 'todo-list' in element.get('class', []):
+        # Handle to-do list
+        blocks = []
+        for li in element.find_all('li', recursive=False):
+            label_span = li.find('label', class_='todo-list__label')
+            if label_span:
+                # Retrieve the checkbox input
+                checkbox_input = label_span.find('input', type='checkbox')
+                checked = checkbox_input.has_attr('checked') if checkbox_input else False
+
+                # Remove the checkbox container to isolate the description
+                checkbox_container = label_span.find('span', contenteditable='false')
+                if checkbox_container:
+                    checkbox_container.extract()
+
+                # Now, label_span should contain the description text
+                # We can collect all the remaining contents as the description
+                description_html = ''
+                for content in label_span.contents:
+                    description_html += str(content)
+
+                # Create a temporary element to pass to html_to_rich_text
+                from bs4 import BeautifulSoup
+                temp_element = BeautifulSoup(description_html, 'html.parser')
+
+                text = html_to_rich_text(temp_element)
+
+                block = {
+                    "object": "block",
+                    "has_children": False,
+                    "archived": False,
+                    "in_trash": False,
+                    'type': 'to_do',
+                    'to_do': {
+                        'rich_text': text,
+                        'checked': checked
+                    }
+                }
+
+                # If the original element has data-notion-block-id, add it to the block
+                block_id = element.get('data-notion-block-id')
+                if block_id:
+                    block['id'] = block_id
+
+                blocks.append(block)
+        return blocks
+
+
+
 
     elif block_type == 'divider':
         return {
@@ -324,19 +467,6 @@ def element_to_notion_block(element):
                     }]
                 }
             }
-
-    # elif block_type == 'callout':
-    #     text = html_to_rich_text(element)
-    #     return {
-    #         "type": "callout",
-    #         "callout": {
-    #             "rich_text": text,
-    #             "icon": {
-    #                 "type": "emoji",
-    #                 "emoji": "ℹ️"
-    #             }
-    #         }
-    #     }
 
     elif block_type == 'callout':
         text = html_to_rich_text(element)

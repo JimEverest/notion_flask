@@ -72,27 +72,3 @@ function toggleSubPages(element, pageId) {
     }
 }
 </script>
-
-
-<!-- 
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const toggleIcons = document.querySelectorAll('.toggle-icon');
-        toggleIcons.forEach(function(icon) {
-            icon.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const sublist = this.parentElement.parentElement.querySelector('ul');
-                if (sublist) {
-                    if (sublist.style.display === 'none') {
-                        sublist.style.display = 'block';
-                        this.textContent = '▼';
-                    } else {
-                        sublist.style.display = 'none';
-                        this.textContent = '▶';
-                    }
-                }
-            });
-        });
-    });
-</script> -->
