@@ -112,32 +112,69 @@ def view_page(page_id):
     )
 
 
+
 @app.template_global()
 def render_page_tree(page):
     page_url = url_for('view_page', page_id=page['id'])
     has_children = bool(page.get('children'))
+
     html = '<li class="nav-item">'
-    html += '<div class="nav-link">'
+    html += f'<div class="nav-link page-item" data-page-id="{page["id"]}" data-has-children="{has_children}">'
+
+    # Icon container
+    html += '<span class="icon-container">'
+
+    # Document or chevron icon
     if has_children:
-        html += '<span class="toggle-icon" onclick="toggleSubPages(this)">▶</span> '
+        html += '''
+            <svg class="icon chevron-icon" viewBox="0 0 12 12">
+                <path d="M6.02734 8.80274C6.27148 8.80274 6.47168 8.71484 6.66211 8.51465L10.2803 4.82324C10.4268 4.67676 10.5 4.49609 10.5 4.28125C10.5 3.85156 10.1484 3.5 9.72363 3.5C9.50879 3.5 9.30859 3.58789 9.15234 3.74902L6.03223 6.9668L2.90722 3.74902C2.74609 3.58789 2.55078 3.5 2.33105 3.5C1.90137 3.5 1.55469 3.85156 1.55469 4.28125C1.55469 4.49609 1.62793 4.67676 1.77441 4.82324L5.39258 8.51465C5.58789 8.71973 5.78808 8.80274 6.02734 8.80274Z"></path>
+            </svg>
+        '''
     else:
-        html += '<span class="toggle-icon"></span>'
-    html += f'<a href="{page_url}">{page["name"]}</a>'
+        html += '''
+            <svg class="icon document-icon" viewBox="0 0 14 14">
+                <path d="M4.35645 15.4678H11.6367C13.0996 15.4678 13.8584 14.6953 13.8584 13.2256V7.02539C13.8584 6.0752 13.7354 5.6377 13.1406 5.03613L9.55176 1.38574C8.97754 0.804688 8.50586 0.667969 7.65137 0.667969H4.35645C2.89355 0.667969 2.13477 1.44043 2.13477 2.91016V13.2256C2.13477 14.7021 2.89355 15.4678 4.35645 15.4678ZM4.46582 14.1279C3.80273 14.1279 3.47461 13.7793 3.47461 13.1436V2.99219C3.47461 2.36328 3.80273 2.00781 4.46582 2.00781H7.37793V5.75391C7.37793 6.73145 7.86328 7.20312 8.83398 7.20312H12.5186V13.1436C12.5186 13.7793 12.1836 14.1279 11.5205 14.1279H4.46582ZM8.95703 6.02734C8.67676 6.02734 8.56055 5.9043 8.56055 5.62402V2.19238L12.334 6.02734H8.95703ZM10.4336 9.00098H5.42969C5.16992 9.00098 4.98535 9.19238 4.98535 9.43164C4.98535 9.67773 5.16992 9.86914 5.42969 9.86914H10.4336C10.6797 9.86914 10.8643 9.67773 10.8643 9.43164C10.8643 9.19238 10.6797 9.00098 10.4336 9.00098ZM10.4336 11.2979H5.42969C5.16992 11.2979 4.98535 11.4893 4.98535 11.7354C4.98535 11.9746 5.16992 12.1592 5.42969 12.1592H10.4336C10.6797 12.1592 10.8643 11.9746 10.8643 11.7354C10.8643 11.4893 10.6797 11.2979 10.4336 11.2979Z"></path>
+            </svg>
+        '''
+    html += '</span>'
+
+    # Page title
+    html += f'<a href="{page_url}" class="page-title">{page["name"]}</a>'
+
+    # Action buttons (hidden by default)
+    html += '''
+        <div class="action-buttons">
+            <span class="button dots-button" onclick="showContextMenu(event, '{page["id"]}')">
+                <!-- Three-dot icon -->
+                <svg class="icon dots-icon" viewBox="0 0 13 3">
+                    <g>
+                        <path d="M3,1.5A1.5,1.5,0,1,1,1.5,0,1.5,1.5,0,0,1,3,1.5Z"></path>
+                        <path d="M8,1.5A1.5,1.5,0,1,1,6.5,0,1.5,1.5,0,0,1,8,1.5Z"></path>
+                        <path d="M13,1.5A1.5,1.5,0,1,1,11.5,0,1.5,1.5,0,0,1,13,1.5Z"></path>
+                    </g>
+                </svg>
+            </span>
+            <span class="button plus-button" onclick="addSubPage('{page["id"]}')">
+                <!-- Plus icon -->
+                <svg class="icon plus-icon" viewBox="0 0 14 14">
+                    <path d="M2 7.16357C2 7.59692 2.36011 7.95093 2.78735 7.95093H6.37622V11.5398C6.37622 11.9731 6.73022 12.3271 7.16357 12.3271C7.59692 12.3271 7.95093 11.9731 7.95093 11.5398V7.95093H11.5398C11.9731 7.95093 12.3271 7.59692 12.3271 7.16357C12.3271 6.73022 11.9731 6.37622 11.5398 6.37622H7.95093V2.78735C7.95093 2.36011 7.59692 2 7.16357 2C6.73022 2 6.37622 2.36011 6.37622 2.78735V6.37622H2.78735C2.36011 6.37622 2 6.73022 2 7.16357Z"></path>
+                </svg>
+            </span>
+        </div>
+    '''
+
     html += '</div>'
+
+    # Subpages
     if has_children:
-        html += '<ul class="nav flex-column ml-3" style="display: none;">'
+        html += '<ul class="nav flex-column ml-3 subpage-list" style="display: none;">'
         for child in page['children']:
             html += render_page_tree(child)
         html += '</ul>'
     html += '</li>'
-    # return Markup(html)
     return html
-
-
-
-
-
-
+    
 
 
 def get_pages():
@@ -161,38 +198,18 @@ def get_page_title(page_id):
         page_name = 'Untitled'
     return page_name
 
-# @app.route('/get_sub_pages/<page_id>')
-# def get_sub_pages_route(page_id):
-#     sub_pages = get_sub_pages(page_id)
-#     return jsonify(sub_pages)
-
-# def get_sub_pages(page_id):
-#     sub_pages = []
-#     children = notion.blocks.children.list(block_id=page_id)
-#     for child in children['results']:
-#         if child['type'] == 'child_page':
-#             sub_page_id = child['id']
-#             sub_page_name = child['child_page']['title']
-#             has_children = child['has_children']
-#             sub_page_data = {
-#                 'id': sub_page_id,
-#                 'name': sub_page_name,
-#                 'has_children': has_children
-#             }
-#             sub_pages.append(sub_page_data)
-#     return sub_pages
-
-# routes.py
 
 @app.route('/get_sub_pages/<page_id>')
 def get_sub_pages(page_id):
     sub_pages = []
     try:
-        children = notion.blocks.children.list(block_id=page_id)['results']
+        # 获取直接子页面
+        children = notion.blocks.children.list(block_id=page_id, page_size=100)['results']
         for child in children:
             if child['type'] == 'child_page':
+                sub_page_id = child['id']
                 sub_page = {
-                    'id': child['id'],
+                    'id': sub_page_id,
                     'name': child['child_page']['title'],
                     'has_children': child['has_children']
                 }
@@ -200,88 +217,6 @@ def get_sub_pages(page_id):
     except Exception as e:
         print(f"Error fetching children for page {page_id}: {e}")
     return jsonify(sub_pages)
-
-
-def table_to_blocks(table_element):
-    blocks = []
-
-    # 创建 table 块
-    table_block = {
-        "object": "block",
-        "type": "table",
-        "table": {
-            "table_width": 0,  # 列数
-            "has_column_header": False,
-            "has_row_header": False
-        },
-        "children": []  # 表格行（table_row）
-    }
-
-    # 获取列数
-    first_row = table_element.find('tr')
-    if first_row:
-        columns = len(first_row.find_all(['th', 'td']))
-        table_block['table']['table_width'] = columns
-
-    # 检查是否有表头
-    if table_element.find('th'):
-        table_block['table']['has_column_header'] = True
-
-    # 遍历表格行
-    for tr in table_element.find_all('tr'):
-        cells = tr.find_all(['th', 'td'])
-        cell_contents = []
-        for cell in cells:
-            # 提取单元格文本
-            cell_text = ''.join(cell.stripped_strings)
-            cell_rich_text = [{
-                "type": "text",
-                "text": {
-                    "content": cell_text
-                }
-            }]
-            cell_contents.append(cell_rich_text)
-
-        # 创建 table_row 块
-        table_row_block = {
-            "object": "block",
-            "type": "table_row",
-            "table_row": {
-                "cells": cell_contents
-            }
-        }
-        table_block['children'].append(table_row_block)
-
-    return table_block
-
-
-
-def list_to_blocks(element, list_type):
-    blocks = []
-    for li in element.find_all('li', recursive=False):
-        # 处理列表项的文本内容
-        text = ''.join([t for t in li.strings])
-        block = {
-            "object": "block",
-            "type": list_type,
-            list_type: {
-                "rich_text": [{
-                    "type": "text",
-                    "text": {
-                        "content": text
-                    }
-                }]
-            },
-            "children": []
-        }
-        # 检查是否有嵌套列表
-        for child in li.contents:
-            if child.name == 'ul':
-                block['children'] += list_to_blocks(child, 'bulleted_list_item')
-            elif child.name == 'ol':
-                block['children'] += list_to_blocks(child, 'numbered_list_item')
-        blocks.append(block)
-    return blocks
 
 
 def update_notion_page_content(page_id, new_blocks):
@@ -384,3 +319,94 @@ def upload_image():
     else:
         return jsonify({'uploaded': False, 'error': {'message': '未选择文件'}}), 400
 
+
+
+@app.route('/delete_page/<page_id>', methods=['POST'])
+def delete_page(page_id):
+    try:
+        notion.pages.update(page_id=page_id, archived=True)
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"Error deleting page {page_id}: {e}")
+        return jsonify({'success': False})
+
+@app.route('/rename_page/<page_id>', methods=['POST'])
+def rename_page_route(page_id):
+    new_title = request.json.get('title')
+    try:
+        notion.pages.update(
+            page_id=page_id,
+            properties={
+                "title": {
+                    "title": [
+                        {
+                            "text": {
+                                "content": new_title
+                            }
+                        }
+                    ]
+                }
+            }
+        )
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"Error renaming page {page_id}: {e}")
+        return jsonify({'success': False})
+
+@app.route('/duplicate_page/<page_id>', methods=['POST'])
+def duplicate_page(page_id):
+    try:
+        # Retrieve the original page
+        original_page = notion.pages.retrieve(page_id)
+        properties = original_page['properties']
+        children = notion.blocks.children.list(block_id=page_id)['results']
+        
+        # Create a new page with "(copy)" appended to the title
+        title_property = properties['title']['title']
+        original_title = ''.join([t['plain_text'] for t in title_property])
+        new_title = original_title + ' (copy)'
+
+        new_page = notion.pages.create(
+            parent={"page_id": original_page['parent']['page_id']},
+            properties={
+                "title": {
+                    "title": [
+                        {
+                            "text": {
+                                "content": new_title
+                            }
+                        }
+                    ]
+                }
+            },
+            children=children
+        )
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"Error duplicating page {page_id}: {e}")
+        return jsonify({'success': False})
+
+@app.route('/create_sub_page/', methods=['POST'])
+def create_sub_page():
+    data = request.json
+    parent_id = data.get('parent_id')
+    title = data.get('title')
+    try:
+        new_page = notion.pages.create(
+            parent={"page_id": parent_id},
+            properties={
+                "title": {
+                    "title": [
+                        {
+                            "text": {
+                                "content": title
+                            }
+                        }
+                    ]
+                }
+            }
+        )
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"Error creating subpage under {parent_id}: {e}")
+        return jsonify({'success': False})

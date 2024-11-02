@@ -4,6 +4,7 @@
     height: 100vh;
     overflow-y: auto;
     background-color: #f8f9fa;
+    padding: 0;
 }
 
 .callout {
@@ -79,18 +80,11 @@ audio {
     position: relative;
     top: 0;
     height: calc(100vh - 56px);
-    padding-top: 20px;
+    padding-top: 0px;
     overflow-x: hidden;
     overflow-y: auto;
 }
 
-.sidebar .nav-link {
-    color: #000;
-}
-
-.sidebar .nav-link:hover {
-    color: #007bff;
-}
 
 
 .toggle-icon {
@@ -133,7 +127,7 @@ audio {
     content: '▼';
 }
 
-
+/* 
 
 [data-notion-block-type="to_do"] {
     display: flex;
@@ -158,4 +152,164 @@ audio {
 .to-do-text.checked {
     text-decoration: line-through;
     color: gray;
-} 
+}  */
+
+
+/* styles.css */
+
+/* Sidebar styling */
+.sidebar .nav-item .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 5px 10px;
+    position: relative;
+}
+
+.sidebar .nav-item .nav-link:hover {
+    background-color: #F7F6F3; /* Slightly darker background on hover */
+}
+
+.sidebar .nav-item .icon-container {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 5px;
+}
+
+.sidebar .nav-item .icon {
+    width: 12px;
+    height: 12px;
+    fill: rgba(55, 53, 47, 0.65);
+    transition: transform 0.2s ease-out;
+}
+
+/* .sidebar .nav-item .chevron-icon {
+    transform: rotate(0deg);
+}
+
+.sidebar .nav-item.expanded .chevron-icon {
+    transform: rotate(90deg); 
+} */
+
+.sidebar .nav-item .page-title {
+    flex-grow: 1;
+    text-decoration: none;
+    color: #37352F;
+    font-size: 14px;
+}
+
+
+
+.sidebar .nav-item .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-left: 4px;
+    cursor: pointer;
+}
+
+.sidebar .nav-item .button .icon {
+    width: 14px;
+    height: 14px;
+    fill: rgba(55, 53, 47, 0.45);
+}
+
+/* .sidebar .nav-item:hover .action-buttons {
+    display: flex;
+} */
+
+.subpage-list {
+    margin-left: 20px;
+    /* padding-left: 10px; */
+    border-left: 1px solid #E1E1E1;
+}
+
+.context-menu {
+    position: absolute;
+    background-color: #fff;
+    border: 1px solid #E1E1E1;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+    display: none;
+    z-index: 1000;
+}
+
+.context-menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 5px 0;
+}
+
+.context-menu ul li {
+    padding: 8px 20px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.context-menu ul li:hover {
+    background-color: #F7F6F3;
+}
+
+
+
+
+
+/* 添加过渡效果 */
+.sidebar .nav-item .icon {
+    transition: transform 0.2s ease-out;
+}
+
+
+
+
+/* 使悬停效果只作用于当前的 .nav-link */
+.sidebar .nav-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 5px 10px;
+}
+
+.sidebar .nav-link:hover {
+    background-color: #F7F6F3;
+}
+
+.sidebar .nav-link:hover .action-buttons {
+    display: flex;
+}
+
+/* 确保 action-buttons 只在当前悬停的 .nav-link 中显示 */
+.action-buttons {
+    display: none;
+    position: absolute;
+    right: 10px;
+    top: 5px;
+}
+
+/* 为按钮和图标添加手型光标和悬停效果 */
+.icon-container,
+.button {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.icon-container:hover,
+.button:hover {
+    background-color: rgba(55, 53, 47, 0.1);
+}
+
+/* 调整 chevron-icon 的旋转 */
+.chevron-icon {
+    transition: transform 0.2s;
+}
+
+.nav-item > .nav-link .chevron-icon {
+    transform: rotate(-90deg); /* 初始状态，指向右 */
+}
+
+.nav-item.expanded > .nav-link .chevron-icon {
+    transform: rotate(0deg); /* 展开时，指向下 */
+}

@@ -1,74 +1,280 @@
+<!-- sidebar.html -->
 <nav class="col-md-2 d-none d-md-block bg-light sidebar">
     <div class="sidebar-sticky">
         <ul class="nav flex-column" id="sidebar-menu">
             {% for page in page_tree %}
                 <li class="nav-item">
-                    <div class="nav-link">
-                        {% if page.has_children %}
-                            <span class="toggle-icon" onclick="toggleSubPages(this, '{{ page.id }}')"></span>
-                        {% else %}
-                            <span class="no-toggle-icon"></span>
-                        {% endif %}
-                        <a href="{{ url_for('view_page', page_id=page.id) }}">{{ page.name }}</a>
+                    <div class="nav-link page-item" data-page-id="{{ page.id }}" data-has-children="{{ page.has_children }}">
+                        <!-- Icon container -->
+                        <span class="icon-container" onclick="toggleSubPages(this)">
+                            {% if page.has_children %}
+                                <!-- Closed chevron icon -->
+                                <svg class="icon chevron-icon" viewBox="0 0 12 12">
+                                    <path d="M6.02734 8.80274C6.27148 8.80274 6.47168 8.71484 6.66211 8.51465L10.2803 4.82324C10.4268 4.67676 10.5 4.49609 10.5 4.28125C10.5 3.85156 10.1484 3.5 9.72363 3.5C9.50879 3.5 9.30859 3.58789 9.15234 3.74902L6.03223 6.9668L2.90722 3.74902C2.74609 3.58789 2.55078 3.5 2.33105 3.5C1.90137 3.5 1.55469 3.85156 1.55469 4.28125C1.55469 4.49609 1.62793 4.67676 1.77441 4.82324L5.39258 8.51465C5.58789 8.71973 5.78808 8.80274 6.02734 8.80274Z"></path>
+                                </svg>
+                            {% else %}
+                                <!-- Document icon -->
+                                <svg class="icon document-icon" viewBox="0 0 14 14">
+                                    <path d="M4.35645 15.4678H11.6367C13.0996 15.4678 13.8584 14.6953 13.8584 13.2256V7.02539C13.8584 6.0752 13.7354 5.6377 13.1406 5.03613L9.55176 1.38574C8.97754 0.804688 8.50586 0.667969 7.65137 0.667969H4.35645C2.89355 0.667969 2.13477 1.44043 2.13477 2.91016V13.2256C2.13477 14.7021 2.89355 15.4678 4.35645 15.4678ZM4.46582 14.1279C3.80273 14.1279 3.47461 13.7793 3.47461 13.1436V2.99219C3.47461 2.36328 3.80273 2.00781 4.46582 2.00781H7.37793V5.75391C7.37793 6.73145 7.86328 7.20312 8.83398 7.20312H12.5186V13.1436C12.5186 13.7793 12.1836 14.1279 11.5205 14.1279H4.46582ZM8.95703 6.02734C8.67676 6.02734 8.56055 5.9043 8.56055 5.62402V2.19238L12.334 6.02734H8.95703ZM10.4336 9.00098H5.42969C5.16992 9.00098 4.98535 9.19238 4.98535 9.43164C4.98535 9.67773 5.16992 9.86914 5.42969 9.86914H10.4336C10.6797 9.86914 10.8643 9.67773 10.8643 9.43164C10.8643 9.19238 10.6797 9.00098 10.4336 9.00098ZM10.4336 11.2979H5.42969C5.16992 11.2979 4.98535 11.4893 4.98535 11.7354C4.98535 11.9746 5.16992 12.1592 5.42969 12.1592H10.4336C10.6797 12.1592 10.8643 11.9746 10.8643 11.7354C10.8643 11.4893 10.6797 11.2979 10.4336 11.2979Z"></path>
+                                </svg>
+                            {% endif %}
+                        </span>
+
+                        <!-- Page title -->
+                        <a href="{{ url_for('view_page', page_id=page.id) }}" class="page-title">{{ page.name }}</a>
+
+                        <!-- Action buttons (hidden by default) -->
+                        <div class="action-buttons">
+                            <span class="button dots-button" onclick="showContextMenu(event, '{{ page.id }}')">
+                                <!-- Three-dot icon -->
+                                <svg class="icon dots-icon" viewBox="0 0 13 3">
+                                    <g>
+                                        <path d="M3,1.5A1.5,1.5,0,1,1,1.5,0,1.5,1.5,0,0,1,3,1.5Z"></path>
+                                        <path d="M8,1.5A1.5,1.5,0,1,1,6.5,0,1.5,1.5,0,0,1,8,1.5Z"></path>
+                                        <path d="M13,1.5A1.5,1.5,0,1,1,11.5,0,1.5,1.5,0,0,1,13,1.5Z"></path>
+                                    </g>
+                                </svg>
+                            </span>
+                            <span class="button plus-button" onclick="addSubPage('{{ page.id }}')">
+                                <!-- Plus icon -->
+                                <svg class="icon plus-icon" viewBox="0 0 14 14">
+                                    <path d="M2 7.16357C2 7.59692 2.36011 7.95093 2.78735 7.95093H6.37622V11.5398C6.37622 11.9731 6.73022 12.3271 7.16357 12.3271C7.59692 12.3271 7.95093 11.9731 7.95093 11.5398V7.95093H11.5398C11.9731 7.95093 12.3271 7.59692 12.3271 7.16357C12.3271 6.73022 11.9731 6.37622 11.5398 6.37622H7.95093V2.78735C7.95093 2.36011 7.59692 2 7.16357 2C6.73022 2 6.37622 2.36011 6.37622 2.78735V6.37622H2.78735C2.36011 6.37622 2 6.73022 2 7.16357Z"></path>
+                                </svg>
+                            </span>
+                        </div>
                     </div>
-                    <ul class="nav flex-column ml-3" style="display: none;"></ul>
+                    <!-- Subpages container (empty initially) -->
+                    <ul class="nav flex-column ml-3 subpage-list" style="display: none;"></ul>
                 </li>
             {% endfor %}
         </ul>
     </div>
 </nav>
 
+<!-- Include the context menu -->
+<div id="context-menu" class="context-menu">
+    <ul>
+        <li onclick="deletePage()">Delete</li>
+        <li onclick="renamePage()">Rename</li>
+        <li onclick="duplicatePage()">Duplicate</li>
+    </ul>
+</div>
+
+
+
+
+
+
 
 
 <script>
-function toggleSubPages(element, pageId) {
-    const sublist = element.parentElement.nextElementSibling;
-    if (sublist.style.display === 'none') {
-        // 展开子页面
-        sublist.style.display = 'block';
-        element.classList.add('expanded');
-        if (!sublist.hasChildNodes()) {
-            // 仅当子列表为空时，发送 AJAX 请求加载子页面
-            fetch('/get_sub_pages/' + pageId)
-                .then(response => response.json())
-                .then(data => {
-                    data.forEach(function(page) {
-                        const li = document.createElement('li');
-                        li.className = 'nav-item';
-                        const div = document.createElement('div');
-                        div.className = 'nav-link';
+// Toggle subpages
+function toggleSubPages(element) {
+    const navItem = element.closest('.nav-item');
+    const navLink = element.closest('.nav-link');
+    const sublist = navItem.querySelector('.subpage-list');
+    const hasChildren = navLink.dataset.hasChildren === 'True';
 
-                        if (page.has_children) {
-                            const span = document.createElement('span');
-                            span.className = 'toggle-icon';
-                            span.onclick = function() { toggleSubPages(this, page.id); };
-                            div.appendChild(span);
-                        } else {
-                            const span = document.createElement('span');
-                            span.className = 'no-toggle-icon';
-                            div.appendChild(span);
-                        }
-
-                        const a = document.createElement('a');
-                        a.href = '/page/' + page.id;
-                        a.textContent = page.name;
-                        div.appendChild(a);
-
-                        li.appendChild(div);
-
-                        const childUl = document.createElement('ul');
-                        childUl.className = 'nav flex-column ml-3';
-                        childUl.style.display = 'none';
-                        li.appendChild(childUl);
-
-                        sublist.appendChild(li);
-                    });
-                });
+    if (hasChildren) {
+        if (sublist.style.display === 'none' || sublist.style.display === '') {
+            // Expand
+            sublist.style.display = 'block';
+            navItem.classList.add('expanded');
+            // Load subpages if not loaded
+            if (!sublist.hasChildNodes()) {
+                const pageId = navLink.dataset.pageId;
+                fetchSubPages(sublist, pageId);
+            }
+        } else {
+            // Collapse
+            sublist.style.display = 'none';
+            navItem.classList.remove('expanded');
         }
-    } else {
-        // 折叠子页面
-        sublist.style.display = 'none';
-        element.classList.remove('expanded');
     }
 }
+
+
+// 修改 fetchSubPages 函数
+function fetchSubPages(sublist, pageId) {
+    fetch('/get_sub_pages/' + pageId)
+        .then(response => response.json())
+        .then(data => {
+            data.forEach(function(page) {
+                const li = document.createElement('li');
+                li.className = 'nav-item';
+                // 不添加 expanded 类
+
+                const navLink = document.createElement('div');
+                navLink.className = 'nav-link page-item';
+                navLink.setAttribute('data-page-id', page.id);
+                navLink.setAttribute('data-has-children', page.has_children ? 'True' : 'False');
+
+                // Icon container
+                const iconContainer = document.createElement('span');
+                iconContainer.className = 'icon-container';
+                if (page.has_children) {
+                    iconContainer.onclick = function() { toggleSubPages(this); };
+                }
+                // Icon
+                const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                if (page.has_children) {
+                    icon.setAttribute('class', 'icon chevron-icon');
+                    icon.setAttribute('viewBox', '0 0 12 12');
+                    // 添加 chevron-icon 的 path
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', 'M6.02734 8.80274C6.27148 8.80274 6.47168 8.71484 6.66211 8.51465L10.2803 4.82324C10.4268 4.67676 10.5 4.49609 10.5 4.28125C10.5 3.85156 10.1484 3.5 9.72363 3.5C9.50879 3.5 9.30859 3.58789 9.15234 3.74902L6.03223 6.9668L2.90722 3.74902C2.74609 3.58789 2.55078 3.5 2.33105 3.5C1.90137 3.5 1.55469 3.85156 1.55469 4.28125C1.55469 4.49609 1.62793 4.67676 1.77441 4.82324L5.39258 8.51465C5.58789 8.71973 5.78808 8.80274 6.02734 8.80274Z'); // chevron path data
+                    icon.appendChild(path);
+                } else {
+                    icon.setAttribute('class', 'icon document-icon');
+                    icon.setAttribute('viewBox', '0 0 14 14');
+                    // 添加 document-icon 的 path
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', 'M4.35645 15.4678H11.6367C13.0996 15.4678 13.8584 14.6953 13.8584 13.2256V7.02539C13.8584 6.0752 13.7354 5.6377 13.1406 5.03613L9.55176 1.38574C8.97754 0.804688 8.50586 0.667969 7.65137 0.667969H4.35645C2.89355 0.667969 2.13477 1.44043 2.13477 2.91016V13.2256C2.13477 14.7021 2.89355 15.4678 4.35645 15.4678ZM4.46582 14.1279C3.80273 14.1279 3.47461 13.7793 3.47461 13.1436V2.99219C3.47461 2.36328 3.80273 2.00781 4.46582 2.00781H7.37793V5.75391C7.37793 6.73145 7.86328 7.20312 8.83398 7.20312H12.5186V13.1436C12.5186 13.7793 12.1836 14.1279 11.5205 14.1279H4.46582ZM8.95703 6.02734C8.67676 6.02734 8.56055 5.9043 8.56055 5.62402V2.19238L12.334 6.02734H8.95703ZM10.4336 9.00098H5.42969C5.16992 9.00098 4.98535 9.19238 4.98535 9.43164C4.98535 9.67773 5.16992 9.86914 5.42969 9.86914H10.4336C10.6797 9.86914 10.8643 9.67773 10.8643 9.43164C10.8643 9.19238 10.6797 9.00098 10.4336 9.00098ZM10.4336 11.2979H5.42969C5.16992 11.2979 4.98535 11.4893 4.98535 11.7354C4.98535 11.9746 5.16992 12.1592 5.42969 12.1592H10.4336C10.6797 12.1592 10.8643 11.9746 10.8643 11.7354C10.8643 11.4893 10.6797 11.2979 10.4336 11.2979Z'); // document path data
+                    icon.appendChild(path);
+                }
+                iconContainer.appendChild(icon);
+                navLink.appendChild(iconContainer);
+
+                // Page title
+                const pageLink = document.createElement('a');
+                pageLink.setAttribute('href', '/page/' + page.id);
+                pageLink.className = 'page-title';
+                pageLink.textContent = page.name;
+                navLink.appendChild(pageLink);
+
+                // Action buttons
+                const actionButtons = document.createElement('div');
+                actionButtons.className = 'action-buttons';
+
+                // Dots button
+                const dotsButton = document.createElement('span');
+                dotsButton.className = 'button dots-button';
+                dotsButton.onclick = function(event) { showContextMenu(event, page.id); };
+                // 添加 dots-icon
+                // ...
+
+                actionButtons.appendChild(dotsButton);
+
+                // Plus button
+                const plusButton = document.createElement('span');
+                plusButton.className = 'button plus-button';
+                plusButton.onclick = function() { addSubPage(page.id); };
+                // 添加 plus-icon
+                // ...
+
+                actionButtons.appendChild(plusButton);
+                navLink.appendChild(actionButtons);
+
+                li.appendChild(navLink);
+
+                // Subpage list
+                const subpageList = document.createElement('ul');
+                subpageList.className = 'nav flex-column ml-3 subpage-list';
+                subpageList.style.display = 'none';
+                li.appendChild(subpageList);
+
+                sublist.appendChild(li);
+            });
+        });
+}
+
+// Show context menu
+function showContextMenu(event, pageId) {
+    event.stopPropagation();
+    const contextMenu = document.getElementById('context-menu');
+    contextMenu.style.display = 'block';
+    contextMenu.style.left = event.pageX + 'px';
+    contextMenu.style.top = event.pageY + 'px';
+    contextMenu.dataset.pageId = pageId;
+}
+
+// Hide context menu on click outside
+document.addEventListener('click', function() {
+    const contextMenu = document.getElementById('context-menu');
+    contextMenu.style.display = 'none';
+});
+
+// Delete page
+function deletePage() {
+    const contextMenu = document.getElementById('context-menu');
+    const pageId = contextMenu.dataset.pageId;
+    if (confirm('Are you sure you want to delete this page?')) {
+        fetch('/delete_page/' + pageId, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Refresh or remove the page from the sidebar
+                    location.reload();
+                } else {
+                    alert('Failed to delete the page.');
+                }
+            });
+    }
+}
+
+// Rename page
+function renamePage() {
+    const contextMenu = document.getElementById('context-menu');
+    const pageId = contextMenu.dataset.pageId;
+    const newTitle = prompt('Enter new page title:');
+    if (newTitle) {
+        fetch('/rename_page/' + pageId, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: newTitle })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the title in the sidebar
+                    location.reload();
+                } else {
+                    alert('Failed to rename the page.');
+                }
+            });
+    }
+}
+
+// Duplicate page
+function duplicatePage() {
+    const contextMenu = document.getElementById('context-menu');
+    const pageId = contextMenu.dataset.pageId;
+    fetch('/duplicate_page/' + pageId, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Refresh the sidebar to show the duplicated page
+                location.reload();
+            } else {
+                alert('Failed to duplicate the page.');
+            }
+        });
+}
+
+// Add subpage
+function addSubPage(parentPageId) {
+    const newTitle = prompt('Enter title for new subpage:');
+    if (newTitle) {
+        fetch('/create_sub_page/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ parent_id: parentPageId, title: newTitle })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Expand the parent page and refresh subpages
+                    const navItem = document.querySelector(`[data-page-id="${parentPageId}"]`).closest('.nav-item');
+                    const sublist = navItem.querySelector('.subpage-list');
+                    sublist.innerHTML = ''; // Clear existing subpages
+                    fetchSubPages(sublist, parentPageId);
+                    sublist.style.display = 'block';
+                    navItem.classList.add('expanded');
+                } else {
+                    alert('Failed to create subpage.');
+                }
+            });
+    }
+}
+
 </script>
