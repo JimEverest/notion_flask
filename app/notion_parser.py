@@ -728,7 +728,8 @@ def element_to_notion_block(element):
         code_element = element.find('code')
         code_text = code_element.get_text() if code_element else ''
         language_class = code_element.get('class', [])
-        language = 'plain text'
+        language = 'python'
+        # body.children[0].code.language should be `"abap"`, `"agda"`, `"arduino"`, `"ascii art"`, `"assembly"`, `"bash"`, `"basic"`, `"bnf"`, `"c"`, `"c#"`, `"c++"`, `"clojure"`, `"coffeescript"`, `"coq"`, `"css"`, `"dart"`, `"dhall"`, `"diff"`, `"docker"`, `"ebnf"`, `"elixir"`, `"elm"`, `"erlang"`, `"f#"`, `"flow"`, `"fortran"`, `"gherkin"`, `"glsl"`, `"go"`, `"graphql"`, `"groovy"`, `"haskell"`, `"hcl"`, `"html"`, `"idris"`, `"java"`, `"javascript"`, `"json"`, `"julia"`, `"kotlin"`, `"latex"`, `"less"`, `"lisp"`, `"livescript"`, `"llvm ir"`, `"lua"`, `"makefile"`, `"markdown"`, `"markup"`, `"matlab"`, `"mathematica"`, `"mermaid"`, `"nix"`, `"notion formula"`, `"objective-c"`, `"ocaml"`, `"pascal"`, `"perl"`, `"php"`, `"plain text"`, `"powershell"`, `"prolog"`, `"protobuf"`, `"purescript"`, `"python"`, `"r"`, `"racket"`, `"reason"`, `"ruby"`, `"rust"`, `"sass"`, `"scala"`, `"scheme"`, `"scss"`, `"shell"`, `"solidity"`, `"sql"`, `"swift"`, `"toml"`, `"typescript"`, `"vb.net"`, `"verilog"`, `"vhdl"`, `"visual basic"`, `"webassembly"`, `"xml"`, `"yaml"`, `"java/c/c++/c#"`, or `"notionscript"`
         for cls in language_class:
             if cls.startswith('language-'):
                 language = cls.replace('language-', '')

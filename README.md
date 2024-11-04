@@ -1,5 +1,5 @@
 # notion_flask
-基于 Notion API 构建一套自定义的 Web Flask应用程序
+A Flask web application that integrates with the Notion API to display and manage Notion pages in a web interface. This app allows users to view, edit, and organize Notion pages with features like page tree navigation, breadcrumbs, caching for improved performance, and basic page operations.
 
 # Request Limits
 > https://developers.notion.com/reference/request-limits
@@ -14,30 +14,137 @@ Limits for property values
 | Any phone number	|     200 characters | 
 | Any multi-select	|     100 options | 
 
+# Features
+1. User Authentication and Roles: Supports multiple user roles with configurable permissions.
+2. View and Edit Pages: Display and edit Notion pages directly from the web interface.
+3. Page Tree Navigation: Collapsible page tree in the sidebar for easy navigation.
+4. Breadcrumb Navigation: Displays the hierarchy of the current page for context.
+5. Page Operations: Create, rename, duplicate, and delete pages.
+6. Caching Mechanism: Improves performance by caching page data and minimizing API calls.
+7. Image Uploading: Upload images and embed them into pages.
+8. Responsive Design: Mobile-friendly and responsive user interface.
 
-# 项目概述
-该项目旨在使用Notion API构建一个自定义的Flask Web应用程序，使用户能够访问、编辑和管理Notion中的笔记。重点是支持各种Notion块类型，提供良好的用户体验，并保持界面的简洁性。
 
-# 需求和功能规划
-## 1. 基本功能
-浏览、查看、创建和编辑Notion笔记。
-支持多种Notion块类型的显示和编辑，包括文本、图片、音频、待办事项等。
-提供一个富文本编辑器（如CKEditor）来实现所见即所得的编辑体验。
-## 2. 用户管理
+# Installation
+## Prerequisites
+- Python 3.6+
+- pip (Python package installer)
+- Notion Integration Token: You need to create an integration at Notion Developers and obtain a token.
+- AWS S3 Account (optional, for image uploads): If you want to enable image uploading, you'll need AWS credentials and an S3 bucket.
 
-账户登录和权限验证机制。
-通过config文件管理用户凭据（初期简单，后期考虑JWT等更安全的方案）。
-## 3. 界面设计
+## Steps
+1.  Clone the Repository
+    ```
+    git clone https://github.com/yourusername/notion-flask-app.git
+    cd notion-flask-app
+    ```
+2.  Create a Virtual Environment
+    ```
+    python3 -m venv venv
+    source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+    ```
+3. Install Dependencies
+    ```
+    pip install -r requirements.txt
+4. Set Up Configuration
+- Copy the Example Configuration File
+    ```
+    cp app/config/config.example.json app/config/config.json
+    ```
+- Edit config.json
 
-页面布局：左侧为页面列表，右侧为内容编辑区。
-侧边栏支持折叠和展开，默认只加载根页面，点击时动态加载子页面。
-界面简洁大方，符合极简主义设计风格。
-## 4. 性能优化
+Open app/config/config.json and update the following fields:
 
-加载特定页面时，只请求该页面的数据，不遍历所有子页面以提高响应速度。
-## 5. 块类型转换
+        - notion_token: Your Notion integration token.
+        - pages: A list of root page IDs you want to include.
 
-设计一套完善的块类型转换机制，将Notion块与CKEditor中的内容格式进行转换，确保操作的可逆性。
+            ```
+            "pages": [
+            {
+                "page_id": "YOUR_ROOT_PAGE_ID"
+            }
+            ]
+            ```
+        - roles: Define user roles and permissions.
+        ```
+
+        "roles": {
+        "admin": {
+            "operation": ["read", "write", "execute"]
+        },
+        "user": {
+            "operation": ["read"]
+        }
+        }
+        ```
+        - users: Define user credentials and roles.
+
+json
+```
+"users": [
+  {
+    "username": "admin",
+    "password": "admin_password",
+    "role": "admin"
+  },
+  {
+    "username": "user",
+    "password": "user_password",
+    "role": "user"
+  }
+]
+```
+- AWS S3 Configuration (optional):
+```
+        "aws_access_key_id": "YOUR_AWS_ACCESS_KEY_ID",
+        "aws_secret_access_key": "YOUR_AWS_SECRET_ACCESS_KEY",
+        "aws_bucket_name": "YOUR_AWS_S3_BUCKET_NAME",
+        "aws_region": "YOUR_AWS_REGION"
+```
+- cache_expiry (optional): Cache expiration time in seconds (default is 3600 seconds or 1 hour).
+
+5. Set the Secret Key
+
+    Open app/__init__.py and set a secret key for session management:
+    ```
+    app.config['SECRET_KEY'] = 'your_secret_key'
+    ```
+6. Run the Application
+    ```
+    flask run
+    ```
+The application will be available at http://127.0.0.1:5000/.
+
+# Application Structure
+```
+notion-flask-app/
+├── app/
+│   ├── __init__.py
+│   ├── routes.py
+│   ├── notion_parser.py
+│   ├── notion_cache.py
+│   ├── templates/
+│   │   ├── base.html
+│   │   ├── index.html
+│   │   ├── login.html
+│   │   ├── page.html
+│   ├── static/
+│   │   ├── styles.css
+│   │   ├── script.js
+│   ├── config/
+│   │   ├── config.example.json
+│   │   ├── config.json
+├── requirements.txt
+├── README.md
+```
+
+- app/__init__.py: Initializes the Flask application.
+- app/routes.py: Defines the routes and views.
+- app/notion_parser.py: Contains functions to interact with the Notion API and parse content.
+- app/notion_cache.py: Implements the caching mechanism.
+- app/templates/: Contains HTML templates for rendering views.
+- app/static/: Contains static files like CSS and JavaScript.
+- app/config/config.json: Configuration file for the application.
 
 # 技术栈
 后端: Python Flask
@@ -45,26 +152,95 @@ Limits for property values
 数据库: 使用Notion API进行数据存储
 文件存储: 使用Minio（OSS）上传和管理文件。
 
+# Configuration
+Notion Integration Token
 
-# 开发计划（In Agile）
-- 迭代1: 
-    - 基础架构
-    - 搭建Flask应用基本结构。
-    - 实现用户登录和基本权限控制。
-- 迭代2: 
-    - 基本功能实现
-    - 实现页面的创建、查看、编辑功能。
-    - 集成CKEditor，支持基本文本和图片编辑。
--  迭代3: 
-    - 块类型支持
-    - 完善块类型转换，支持更多Notion块（如to-do, callout, audio等）。
-    - 优化块的显示效果和功能。
+    - Create an integration at Notion Developers.
+    - Share the pages you want to access with your integration.
+    - Obtain the integration token and set it in config.json.
 
-- 迭代4: 
-    - 性能优化与用户体验
-    - 优化页面加载性能，改进UI设计。
-    - 根据用户反馈进一步调整和完善功能。
+config.json File
 
+This file contains all the configuration settings for the application, including Notion integration, user roles, and caching settings.
+
+    - notion_token: Your Notion integration token.
+    - pages: A list of root pages to include in the application.
+    - roles: Define user roles and permissions.
+    - users: Define user credentials and their roles.
+    - cache_expiry: Cache expiration time in seconds.
+    - AWS S3 Configuration: Required if you enable image uploading.
+# Usage
+Login and Roles
+
+    - Login Page: Access the login page at http://127.0.0.1:5000/login.
+    - Credentials: Use the username and password defined in config.json.
+    - Roles and Permissions: User permissions are determined by their assigned role.
+
+Viewing Pages
+
+    - Page Tree: After logging in, the sidebar displays the page tree.
+    - Navigate: Click on any page to view its content.
+    - Content Rendering: The content is fetched from the corresponding Notion page.
+
+Editing Pages
+
+    - Permissions: Only users with write permissions can edit pages.
+    - Editor: An HTML editor is provided for editing page content.
+    - Save Changes: Click "Save" to update the content on Notion.
+
+Page Tree Navigation
+
+    - Collapsible Tree: The sidebar displays a collapsible page tree.
+    - Expand/Collapse: Click the chevron icons to expand or collapse sections.
+    - Refresh: Use the refresh icon to reload a page's children from Notion.
+
+Breadcrumb Navigation
+
+    - Hierarchy Display: Breadcrumbs at the top of each page show the navigation path.
+    - Clickable: Breadcrumb items are clickable for quick navigation.
+
+Page Operations
+
+    - Create New Page: Click the plus icon next to a page to create a sub-page.
+    - Rename Page: Use the dots menu to rename a page.
+    - Duplicate Page: Use the dots menu to duplicate a page.
+    - Delete Page: Use the dots menu to delete a page.
+
+Image Uploading
+
+    - Upload Images: Use the image upload feature to add images to pages.
+    - AWS S3: Images are uploaded to AWS S3 and embedded into the page content.
+
+Caching Mechanism
+
+The application implements a caching mechanism to improve performance by reducing the number of API calls to Notion.
+How It Works
+
+    - Cache Structure: A nested data structure that mirrors the page tree.
+    - Cached Data: Includes page titles, page tree, and content.
+    - Expiration: Cache entries expire based on the cache_expiry setting.
+
+Cache Updates
+
+    - Page Operations: The cache is updated when pages are created, renamed, duplicated, or deleted.
+    - Manual Refresh: Users can refresh a page or the entire tree using the refresh icons.
+    - Automatic Refresh: Cache entries refresh automatically after the expiration time.
+
+Benefits
+
+    - Performance: Reduces load times by minimizing API calls.
+    - Efficiency: Ensures that data is up-to-date without unnecessary network requests.
+
+# Notion API Integration
+    Notion SDK: The application uses the official Notion SDK for Python.
+    API Calls: Interacts with Notion to retrieve and update pages.
+    Permissions: Ensure your Notion integration has access to the necessary pages.
+
+# Notes
+    Security: Keep your Notion token and AWS credentials secure.
+    Error Handling: Check the console or logs for error messages during development.
+    Customization: Feel free to customize the templates and styles to fit your needs.
+    Limitations: The app does not support all Notion features (e.g., databases, complex blocks).
 
 # 具体技术细节
 ## 1. 块类型处理:
@@ -90,10 +266,17 @@ Limits for property values
 # 问题（Todo）
 针对具体问题（如页面加载速度、block显示不正常等），需要逐步调试和修复：
 - [x] **加载性能:** 确保只在必要时请求API数据，避免重复请求。
-- [ ] **Block显示:** 确保CKEditor的配置和所需插件都已正确设置，并对特殊元素（如音频、checkbox）进行特殊处理。
-- [ ] **Submit** 
+- [x] **Block显示:** 确保CKEditor的配置和所需插件都已正确设置，并对特殊元素（如音频、checkbox）进行特殊处理。
+- [x] **Submit** 
 - [ ] **Diary** 
 - [ ] **AI Copilot** 
 - [ ] **文件上传** 
-- [ ] **新建page** 
+- [x] **新建page** 
 - [ ] **Weekly recap** 
+- [ ] **Page tree cache** 
+
+# Acknowledgments
+
+    Notion: For providing an API to interact with their platform.
+    Flask: For being an excellent web framework for Python.
+    CKEditor: For the rich text editor used in the application.

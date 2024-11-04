@@ -30,10 +30,10 @@ class S3Client:
             MINIO_REGION
             MINIO_SECURE
         """
-        self.endpoint = endpoint or os.getenv('MINIO_ENDPOINT', '20.187.52.241:9000')
-        self.access_key = access_key or os.getenv('MINIO_ACCESS_KEY', 'IgsRutWhylZ8R2pUR3e8')
-        self.secret_key = secret_key or os.getenv('MINIO_SECRET_KEY', 'HpW0kcFUjE37lzw2YXaX2g7UVSHCRkbLBQWVq8py')
-        self.bucket_name = bucket_name or os.getenv('MINIO_BUCKET', 'mini')
+        self.endpoint = endpoint or os.getenv('MINIO_ENDPOINT', '')
+        self.access_key = access_key or os.getenv('MINIO_ACCESS_KEY', '')
+        self.secret_key = secret_key or os.getenv('MINIO_SECRET_KEY', '')
+        self.bucket_name = bucket_name or os.getenv('MINIO_BUCKET', '')
         # self.region = region or os.getenv('MINIO_REGION', 'us-east-1')
         self.secure = secure or (os.getenv('MINIO_SECURE', 'False').lower() == 'true')
 
@@ -234,12 +234,12 @@ class S3Client:
 
 def main():
     # 确保环境变量已设置
-    os.environ['MINIO_ENDPOINT'] = "20.187.52.241:9000"
-    os.environ['MINIO_ACCESS_KEY'] = 'IgsRutWhylZ8R2pUR3e8'
-    os.environ['MINIO_SECRET_KEY'] = 'HpW0kcFUjE37lzw2YXaX2g7UVSHCRkbLBQWVq8py'
-    os.environ['MINIO_BUCKET'] = 'pub-bucket'
-    os.environ['MINIO_REGION'] = 'us-east-1'
-    os.environ['MINIO_SECURE'] = 'False'
+    os.environ['MINIO_ENDPOINT'] = "20.187.51.241:9000"
+    os.environ['MINIO_ACCESS_KEY'] = ''
+    os.environ['MINIO_SECRET_KEY'] = ''
+    os.environ['MINIO_BUCKET'] = 'pub'
+    os.environ['MINIO_REGION'] = ''
+    os.environ['MINIO_SECURE'] = ''
 
     # 初始化S3Client，不需要传递参数，因为它会从环境变量中读取
     s3_client = S3Client()

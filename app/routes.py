@@ -84,7 +84,7 @@ def index():
 
 @app.route('/page/<page_id>', methods=['GET', 'POST'])
 def view_page(page_id):
-    if 'username' not in session:
+    if 'username' not in session: 
         return redirect(url_for('login'))
     user_role = session.get('role')
     user_permissions = config['roles'][user_role]['operation']
