@@ -3,7 +3,7 @@
 from notion_client import Client
 from bs4 import BeautifulSoup, NavigableString, Tag
 import json
- 
+import time
 # 加载配置
 config = {}
 with open('app/config/config.json') as config_file:
@@ -11,6 +11,309 @@ with open('app/config/config.json') as config_file:
 
 # 初始化 Notion 客户端
 notion = Client(auth=config['notion_token'])
+
+
+# Global cache variable
+cache = {
+    'page_tree': None,
+    'timestamp': None,
+    'expiry': config.get('cache_expiry', 3600)  # Default expiry time is 1 hour
+}
+
+def get_cached_page_tree():
+    if cache['page_tree'] is None or cache_expired():
+        update_cache()
+    return cache['page_tree']
+
+def cache_expired():
+    if cache['timestamp'] is None:
+        return True
+    return (time.time() - cache['timestamp']) > cache['expiry']
+
+def update_cache():
+    # Reload config
+    with open('app/config/config.json') as config_file:
+        config.update(json.load(config_file))
+    # Rebuild page tree
+    cache['page_tree'] = build_page_tree()
+    # Update timestamp
+    cache['timestamp'] = time.time()
+
+def build_page_tree():
+    pages = []
+    for root_page_id in get_page_ids():
+        page_title = get_page_title(root_page_id)
+        root_page = {
+            'id': root_page_id,
+            'name': page_title,
+            'has_children': True,  # Assume root pages have children
+            'children': []  # We'll leave children empty for now
+        }
+        pages.append(root_page)
+    return pages
+
+
+
+def get_sub_pages_from_cache(page_id):
+    # First, check if the sub-pages are already in the cache
+    page_tree = get_cached_page_tree()
+    sub_pages = find_sub_pages_in_cache(page_id, page_tree)
+    if sub_pages is not None and len(sub_pages) >0:
+        return sub_pages
+    else:
+        # Sub-pages not in cache, fetch from Notion API and update cache
+        sub_pages = []
+        parent_page = find_page_in_cache(page_id, page_tree)
+        if not parent_page['has_children']:
+            return sub_pages
+        try:
+            children = notion.blocks.children.list(block_id=page_id, page_size=100)['results']
+            for child in children:
+                if child['type'] == 'child_page':
+                    sub_page_id = child['id']
+                    sub_page_title = child['child_page']['title']
+                    has_children = child['has_children']
+                    sub_page = {
+                        'id': sub_page_id,
+                        'name': sub_page_title,
+                        'has_children': has_children,
+                        'children': []  # We won't load grandchildren yet
+                    }
+                    sub_pages.append(sub_page)
+            # Update cache with the sub-pages
+            add_sub_pages_to_cache(page_id, sub_pages)
+        except Exception as e:
+            print(f"Error fetching children for page {page_id}: {e}")
+        return sub_pages
+
+
+
+def find_sub_pages_in_cache(page_id, pages=None):
+    if pages is None:
+        pages = get_cached_page_tree()
+    for page in pages:
+        if page['id'] == page_id:
+            return page.get('children')
+        if 'children' in page and page['children']:
+            result = find_sub_pages_in_cache(page_id, page['children'])
+            if result is not None:
+                return result
+    return None
+
+def add_sub_pages_to_cache(page_id, sub_pages):
+    # Find the page in the cache and add the sub_pages
+    page_tree = get_cached_page_tree()
+    page = find_page_in_cache(page_id, page_tree)
+    if page:
+        page['children'] = sub_pages
+        # Update has_children
+        page['has_children'] = len(sub_pages) > 0
+
+
+def find_page_in_cache(page_id, pages=None):
+    if pages is None:
+        pages = get_cached_page_tree()
+    for page in pages:
+        if page['id'] == page_id:
+            return page
+        if 'children' in page and page['children']:
+            result = find_page_in_cache(page_id, page['children'])
+            if result is not None:
+                return result
+    return None
+
+
+
+def upTracePageAncestor2Cache(page_id):
+    """
+    Traces the ancestors of the given page_id and inserts the path into the cache tree.
+    """
+    # Get the current cached page tree
+    page_tree = get_cached_page_tree()
+
+    # List to hold the path from the root to the current page
+    path = []
+
+    current_page_id = page_id
+    while True:
+        # Check if current_page_id is already in cache
+        page_in_cache = find_page_in_cache(current_page_id, page_tree)
+        if page_in_cache:
+            # Page is already in cache; we can attach the path here
+            break
+        else:
+            # Page not in cache; retrieve it via Notion API
+            try:
+                page = notion.pages.retrieve(page_id=current_page_id)
+                page_title = page["properties"]["title"]['title'][0]['plain_text'] #get_page_title(current_page_id) #page["properties"]["title"]['title'][0]['plain_text']
+                parent_info = page.get('parent')
+                has_children = page.get('has_children', True) # True 
+
+                # Create a page dict
+                page_dict = {
+                    'id': current_page_id,
+                    'name': page_title,
+                    'has_children': has_children,
+                    'children': []
+                }
+
+                # Insert at the beginning of the path list
+                path.insert(0, page_dict)
+
+                if parent_info and parent_info.get('type') == 'page_id':
+                    # Continue tracing upwards to the parent
+                    current_page_id = parent_info.get('page_id')
+                else:
+                    # Reached a root page not in cache; add it to the root of the cache tree
+                    page_tree.append(page_dict)
+                    # Update cache timestamp
+                    cache['timestamp'] = time.time()
+                    return
+            except Exception as e:
+                print(f"Error retrieving page {current_page_id}: {e}")
+                return
+
+    # Now, we have a page in cache (`page_in_cache`) and a path of pages to attach
+    parent_in_cache = page_in_cache
+    for page_dict in path:
+        # Attach each page in the path to the appropriate parent in the cache
+        # Check if the child already exists in the parent's children
+        child_in_cache = find_page_in_children(page_dict['id'], parent_in_cache['children'])
+        if not child_in_cache:
+            parent_in_cache['children'].append(page_dict) #todo: add ony 1???  or traverse all children??
+            parent_in_cache['has_children'] = True
+            # Move to the next level
+            parent_in_cache = page_dict
+        else:
+            # Child already exists; move to it
+            parent_in_cache = child_in_cache
+
+    # Update cache timestamp
+    cache['timestamp'] = time.time()
+
+
+def find_page_in_children(page_id, children):
+    for child in children:
+        if child['id'] == page_id:
+            return child
+    return None
+
+def generate_breadcrumbs_from_cache(page_id):
+    """
+    Generates a list of breadcrumbs from the root to the given page_id.
+    Each breadcrumb is a dictionary with 'id' and 'name'.
+    """
+    breadcrumbs = []
+    page = find_page_in_cache(page_id, get_cached_page_tree())
+    if page is None:
+        return breadcrumbs  # Empty list if page not found
+
+    # Traverse up to the root
+    while page:
+        breadcrumbs.insert(0, {'id': page['id'], 'name': page['name']})
+        parent_page = find_parent_in_cache(page['id'], get_cached_page_tree())
+        page = parent_page
+    return breadcrumbs
+
+# def find_parent_in_cache(child_id, pages):
+#     for page in pages:
+#         if any(child['id'] == child_id for child in page.get('children', [])):
+#             return page
+#         # Recursively search in children
+#         result = find_parent_in_cache(child_id, page.get('children', []))
+#         if result:
+#             return result
+#     return None
+
+# find parent by child_id
+def find_parent_in_cache(child_id, pages=None):
+    # ensuring upTracePageAncestor2Cache 
+    title = get_cached_page_title(child_id)
+    if pages is None:
+        pages = get_cached_page_tree()
+    for page in pages:
+        if any(child['id'] == child_id for child in page.get('children', [])):
+            return page
+        # Recursively search in children
+        result = find_parent_in_cache(child_id, page.get('children', []))
+        if result:
+            return result
+    return None
+
+
+
+
+
+
+def update_page_name_in_cache(page_id, new_name):
+    page_tree = get_cached_page_tree()
+    page = find_page_in_cache(page_id, page_tree)
+    if page:
+        page['name'] = new_name
+        # Update cache timestamp
+        cache['timestamp'] = time.time()
+
+
+
+def update_parent_children_in_cache(parent_id):
+    try:
+        # Fetch the latest children of the parent page
+        children = notion.blocks.children.list(block_id=parent_id, page_size=100)['results']
+        sub_pages = []
+        for child in children:
+            if child['type'] == 'child_page':
+                sub_page_id = child['id']
+                sub_page_title = child['child_page']['title']
+                has_children = child['has_children']
+                sub_page = {
+                    'id': sub_page_id,
+                    'name': sub_page_title,
+                    'has_children': has_children,
+                    'children': []
+                }
+                sub_pages.append(sub_page)
+        # Update the parent in the cache
+        page_tree = get_cached_page_tree()
+        parent_page = find_page_in_cache(parent_id, page_tree)
+        if parent_page:
+            parent_page['children'] = sub_pages
+            parent_page['has_children'] = len(sub_pages) > 0
+            cache['timestamp'] = time.time()
+    except Exception as e:
+        print(f"Error updating parent children in cache: {e}")
+
+
+def update_node_children_in_cache(page_id):
+    try:
+        # Fetch the latest children of the node
+        children = notion.blocks.children.list(block_id=page_id, page_size=100)['results']
+        sub_pages = []
+        for child in children:
+            if child['type'] == 'child_page':
+                sub_page_id = child['id']
+                sub_page_title = child['child_page']['title']
+                has_children = child['has_children']
+                sub_page = {
+                    'id': sub_page_id,
+                    'name': sub_page_title,
+                    'has_children': has_children,
+                    'children': []
+                }
+                sub_pages.append(sub_page)
+        # Update the node in the cache
+        page_tree = get_cached_page_tree()
+        node = find_page_in_cache(page_id, page_tree)
+        if node:
+            node['children'] = sub_pages
+            node['has_children'] = len(sub_pages) > 0
+            cache['timestamp'] = time.time()
+    except Exception as e:
+        print(f"Error updating node children in cache: {e}")
+
+
+
+
+
 
 def get_page_ids():
     pages = config.get("pages", [])
@@ -29,6 +332,16 @@ def get_page_title(page_id):
     except Exception as e:
         print(f"Error fetching title for page {page_id}: {e}")
         return 'Untitled'
+
+def get_cached_page_title(page_id):
+    page_tree = get_cached_page_tree()
+    page = find_page_in_cache(page_id, page_tree)
+    if page:
+        return page["name"]
+    else:
+        # Page not in cache; load the entire path into cache
+        upTracePageAncestor2Cache(page_id)
+        return get_page_title(page_id)
 
 def get_page_tree():
     pages = []
@@ -280,307 +593,6 @@ def html_to_notion_blocks(html_content):
             blocks.append(block)
     
     return blocks
-
-# def html_to_notion_blocks(html_content):
-#     soup = BeautifulSoup(html_content, 'html.parser')
-#     blocks = []
-#     for element in soup.contents:
-#         block = element_to_notion_block(element)
-#         if block:
-#             if isinstance(block, list):
-#                 blocks.extend(block)
-#             else:
-#                 blocks.append(block)
-#     return blocks
-    
-
-# def element_to_notion_block(element):
-#     block_type = element.get('data-notion-block-type', 'paragraph')
-
-#     if block_type == 'paragraph':
-#         block = {
-#             "type": "paragraph",
-#             "paragraph": {
-#                 "rich_text": html_to_rich_text(element)
-#             }
-#         }
-#         # 处理子元素
-#         children = []
-#         for child_element in element.find_all(recursive=False):
-#             child_block = element_to_notion_block(child_element)
-#             if child_block:
-#                 children.append(child_block)
-#         if children:
-#             block['has_children'] = True
-#             block['children'] = children
-#         return block
-
-#     elif block_type == 'heading_1':
-#         return {
-#             "type": "heading_1",
-#             "heading_1": {
-#                 "rich_text": html_to_rich_text(element)
-#             }
-#         }
-
-#     elif block_type == 'heading_2':
-#         return {
-#             "type": "heading_2",
-#             "heading_2": {
-#                 "rich_text": html_to_rich_text(element)
-#             }
-#         }
-
-#     elif block_type == 'heading_3':
-#         return {
-#             "type": "heading_3",
-#             "heading_3": {
-#                 "rich_text": html_to_rich_text(element)
-#             }
-#         }
-
-#     # elif block_type == 'bulleted_list':
-#     #     return list_element_to_notion_block(element, 'bulleted_list_item')
-#     elif block_type == 'bulleted_list':
-#         items = element.find_all('li', recursive=False)
-#         blocks = []
-#         for item in items:
-#             block = {
-#                 "type": "bulleted_list_item",
-#                 "bulleted_list_item": {
-#                     "rich_text": html_to_rich_text(item)
-#                 }
-#             }
-#             # 处理子元素
-#             children_elements = item.find_all(['ul', 'ol'], recursive=False)
-#             if children_elements:
-#                 block['has_children'] = True
-#                 block['children'] = []
-#                 for child_element in children_elements:
-#                     child_blocks = element_to_notion_block(child_element)
-#                     if child_blocks:
-#                         block['children'].extend(child_blocks)
-#             blocks.append(block)
-#         return blocks
-
-#     elif block_type == 'numbered_list':
-#         return list_element_to_notion_block(element, 'numbered_list_item')
-
-#     elif element.name == 'ul' and 'todo-list' in element.get('class', []):
-#         # Handle to-do list
-#         blocks = []
-#         for li in element.find_all('li', recursive=False):
-#             label_span = li.find('label', class_='todo-list__label')
-#             if label_span:
-#                 # Retrieve the checkbox input
-#                 checkbox_input = label_span.find('input', type='checkbox')
-#                 checked = checkbox_input.has_attr('checked') if checkbox_input else False
-
-#                 # Remove the checkbox container to isolate the description
-#                 checkbox_container = label_span.find('span', contenteditable='false')
-#                 if checkbox_container:
-#                     checkbox_container.extract()
-
-#                 # Now, label_span should contain the description text
-#                 # We can collect all the remaining contents as the description
-#                 description_html = ''
-#                 for content in label_span.contents:
-#                     description_html += str(content)
-
-#                 # Create a temporary element to pass to html_to_rich_text
-#                 from bs4 import BeautifulSoup
-#                 temp_element = BeautifulSoup(description_html, 'html.parser')
-
-#                 text = html_to_rich_text(temp_element)
-
-#                 block = {
-#                     "object": "block",
-#                     "has_children": False,
-#                     "archived": False,
-#                     "in_trash": False,
-#                     'type': 'to_do',
-#                     'to_do': {
-#                         'rich_text': text,
-#                         'checked': checked
-#                     }
-#                 }
-
-#                 # If the original element has data-notion-block-id, add it to the block
-#                 block_id = element.get('data-notion-block-id')
-#                 if block_id:
-#                     block['id'] = block_id
-
-#                 blocks.append(block)
-#         return blocks
-
-
-
-
-#     elif block_type == 'divider':
-#         return {
-#             "type": "divider",
-#             "divider": {}
-#         }
-
-#     elif block_type == 'image':
-#         img_tag = element.find('img')
-#         if img_tag:
-#             image_url = img_tag.get('src')
-#             caption = element.find('figcaption').get_text() if element.find('figcaption') else ''
-#             return {
-#                 "type": "image",
-#                 "image": {
-#                     "type": "external",
-#                     "external": {
-#                         "url": image_url
-#                     },
-#                     "caption": [{
-#                         "type": "text",
-#                         "text": {
-#                             "content": caption
-#                         }
-#                     }]
-#                 }
-#             }
-
-#     elif block_type == 'callout':
-#         text = html_to_rich_text(element)
-#         block = {
-#             "type": "callout",
-#             "callout": {
-#                 "rich_text": text,
-#                 "icon": {
-#                     "type": "emoji",
-#                     "emoji": "ℹ️"  # 默认图标，或根据需要调整
-#                 }
-#             },
-#             "children": []
-#         }
-#         # 处理子元素
-#         for child_element in element.find_all(recursive=False):
-#             if child_element.name != 'span' and child_element != element.contents[0]:
-#                 child_block = element_to_notion_block(child_element)
-#                 if child_block:
-#                     block["children"].append(child_block)
-#         return block
-        
-#     elif block_type == 'code':
-#         code_element = element.find('code')
-#         code_text = code_element.get_text() if code_element else ''
-#         language_class = code_element.get('class', [])
-#         language = ''
-#         if language_class:
-#             language = language_class[0].replace('language-', '')
-#         return {
-#             "type": "code",
-#             "code": {
-#                 "rich_text": [{
-#                     "type": "text",
-#                     "text": {
-#                         "content": code_text
-#                     }
-#                 }],
-#                 "language": language
-#             }
-#         }
-
-#     elif block_type == 'file':
-#         a_tag = element.find('a')
-#         file_url = a_tag.get('href') if a_tag else ''
-#         file_name = a_tag.get_text() if a_tag else ''
-#         return {
-#             "type": "file",
-#             "file": {
-#                 "type": "external",
-#                 "external": {
-#                     "url": file_url
-#                 },
-#                 "caption": [{
-#                     "type": "text",
-#                     "text": {
-#                         "content": file_name
-#                     }
-#                 }]
-#             }
-#         }
-
-#     elif block_type == 'bookmark':
-#         a_tag = element.find('a')
-#         url = a_tag.get('href') if a_tag else ''
-#         caption = a_tag.get_text() if a_tag else ''
-#         return {
-#             "type": "bookmark",
-#             "bookmark": {
-#                 "url": url,
-#                 "caption": [{
-#                     "type": "text",
-#                     "text": {
-#                         "content": caption
-#                     }
-#                 }]
-#             }
-#         }
-
-#     elif block_type == 'link_preview':
-#         a_tag = element.find('a')
-#         url = a_tag.get('href') if a_tag else ''
-#         return {
-#             "type": "link_preview",
-#             "link_preview": {
-#                 "url": url
-#             }
-#         }
-
-#     elif block_type == 'link_to_page':
-#         a_tag = element.find('a')
-#         page_id = a_tag.get('href').split('/page/')[1] if a_tag else ''
-#         return {
-#             "type": "link_to_page",
-#             "link_to_page": {
-#                 "type": "page_id",
-#                 "page_id": page_id
-#             }
-#         }
-
-#     elif block_type == 'toggle':
-#         summary = element.find('summary')
-#         title_text = summary.get_text() if summary else ''
-#         block = {
-#             "type": "toggle",
-#             "toggle": {
-#                 "rich_text": html_to_rich_text(summary)
-#             },
-#             "children": []
-#         }
-#         # 处理子元素
-#         for child_element in element.find_all(recursive=False):
-#             if child_element != summary:
-#                 child_block = element_to_notion_block(child_element)
-#                 if child_block:
-#                     block["children"].append(child_block)
-#         return block
-
-#     elif block_type == 'audio':
-#         source_tag = element.find('source')
-#         audio_url = source_tag.get('src') if source_tag else ''
-#         return {
-#             "type": "audio",
-#             "audio": {
-#                 "type": "external",
-#                 "external": {
-#                     "url": audio_url
-#                 }
-#             }
-#         }
-
-#     elif block_type == 'child_page':
-#         # Notion API 如何 创建子页面？？？ TBC
-#         return None
-
-#     else:
-#         return None
-
-
 
 
 def element_to_notion_block(element):
@@ -1034,11 +1046,5 @@ def list_element_to_notion_block(element, list_type):
                 block['children'].extend(child_blocks)
         blocks.append(block)
     return blocks
-
-
-
-
-
-
 
 

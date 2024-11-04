@@ -3,6 +3,24 @@
 {% block title %}{{ page_title }} - Notion Flask App{% endblock %}
 
 {% block content %}
+
+<!-- Breadcrumb Navigation -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        {% for crumb in breadcrumbs %}
+            {% if not loop.last %}
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('view_page', page_id=crumb.id) }}">{{ crumb.name }}</a>
+                </li>
+            {% else %}
+                <li class="breadcrumb-item active" aria-current="page">{{ crumb.name }}</li>
+            {% endif %}
+        {% endfor %}
+    </ol>
+</nav>
+
+
+
 <h1>{{ page_title }}</h1>
 {% if 'write' in user_permissions %}
     <form method="post">

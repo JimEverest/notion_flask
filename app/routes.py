@@ -12,8 +12,19 @@ from .notion_parser import (
     get_block_content,
     parse_block,
     html_to_notion_blocks,
-    get_page_title,
-    get_page_tree
+    get_page_title, 
+    # get_page_tree,
+    get_cached_page_tree,
+    get_sub_pages_from_cache,
+    find_page_in_cache,
+    upTracePageAncestor2Cache,
+    generate_breadcrumbs_from_cache,
+    get_cached_page_title,
+
+    update_page_name_in_cache,
+    update_parent_children_in_cache,
+    update_node_children_in_cache,
+    find_parent_in_cache
 )
 
 
@@ -67,7 +78,7 @@ def logout():
 def index():
     if 'username' not in session:
         return redirect(url_for('login'))
-    page_tree = get_page_tree()
+    page_tree = get_cached_page_tree() # get_page_tree()
     return render_template('index.html', page_tree=page_tree)
 
 
@@ -98,43 +109,58 @@ def view_page(page_id):
         else:
             flash('您没有权限编辑此页面')
             return redirect(url_for('view_page', page_id=page_id))
-            
-    page_title = get_page_title(page_id)
-    page_tree = get_page_tree()
+    
+    # Check if the page is in the cache
+    if not is_page_in_cache(page_id):
+        # Load the page and its ancestors into the cache
+        upTracePageAncestor2Cache(page_id)
+        
+    page_title = get_cached_page_title(page_id)
+    page_tree = get_cached_page_tree() #get_page_tree()
     content = get_block_content(page_id)
+
+    # Generate breadcrumbs from the cache
+    breadcrumbs = generate_breadcrumbs_from_cache(page_id)
+    
     return render_template(
         'page.html',
         content=content,
         page_title=page_title,
         page_id=page_id,
         page_tree=page_tree,
-        user_permissions=user_permissions
+        user_permissions=user_permissions,
+        breadcrumbs=breadcrumbs
     )
 
+def is_page_in_cache(page_id):
+    page_tree = get_cached_page_tree()
+    return find_page_in_cache(page_id, page_tree) is not None
 
 
-@app.template_global()
+
 def render_page_tree(page):
     page_url = url_for('view_page', page_id=page['id'])
-    has_children = bool(page.get('children'))
+    has_children = page.get('has_children', False)
 
     html = '<li class="nav-item">'
     html += f'<div class="nav-link page-item" data-page-id="{page["id"]}" data-has-children="{has_children}">'
 
     # Icon container
-    html += '<span class="icon-container">'
+    html += '<span class="icon-container" onclick="toggleSubPages(this)">'
 
     # Document or chevron icon
     if has_children:
         html += '''
             <svg class="icon chevron-icon" viewBox="0 0 12 12">
+                <!-- Chevron icon SVG path -->
                 <path d="M6.02734 8.80274C6.27148 8.80274 6.47168 8.71484 6.66211 8.51465L10.2803 4.82324C10.4268 4.67676 10.5 4.49609 10.5 4.28125C10.5 3.85156 10.1484 3.5 9.72363 3.5C9.50879 3.5 9.30859 3.58789 9.15234 3.74902L6.03223 6.9668L2.90722 3.74902C2.74609 3.58789 2.55078 3.5 2.33105 3.5C1.90137 3.5 1.55469 3.85156 1.55469 4.28125C1.55469 4.49609 1.62793 4.67676 1.77441 4.82324L5.39258 8.51465C5.58789 8.71973 5.78808 8.80274 6.02734 8.80274Z"></path>
             </svg>
         '''
     else:
         html += '''
             <svg class="icon document-icon" viewBox="0 0 14 14">
-                <path d="M4.35645 15.4678H11.6367C13.0996 15.4678 13.8584 14.6953 13.8584 13.2256V7.02539C13.8584 6.0752 13.7354 5.6377 13.1406 5.03613L9.55176 1.38574C8.97754 0.804688 8.50586 0.667969 7.65137 0.667969H4.35645C2.89355 0.667969 2.13477 1.44043 2.13477 2.91016V13.2256C2.13477 14.7021 2.89355 15.4678 4.35645 15.4678ZM4.46582 14.1279C3.80273 14.1279 3.47461 13.7793 3.47461 13.1436V2.99219C3.47461 2.36328 3.80273 2.00781 4.46582 2.00781H7.37793V5.75391C7.37793 6.73145 7.86328 7.20312 8.83398 7.20312H12.5186V13.1436C12.5186 13.7793 12.1836 14.1279 11.5205 14.1279H4.46582ZM8.95703 6.02734C8.67676 6.02734 8.56055 5.9043 8.56055 5.62402V2.19238L12.334 6.02734H8.95703ZM10.4336 9.00098H5.42969C5.16992 9.00098 4.98535 9.19238 4.98535 9.43164C4.98535 9.67773 5.16992 9.86914 5.42969 9.86914H10.4336C10.6797 9.86914 10.8643 9.67773 10.8643 9.43164C10.8643 9.19238 10.6797 9.00098 10.4336 9.00098ZM10.4336 11.2979H5.42969C5.16992 11.2979 4.98535 11.4893 4.98535 11.7354C4.98535 11.9746 5.16992 12.1592 5.42969 12.1592H10.4336C10.6797 12.1592 10.8643 11.9746 10.8643 11.7354C10.8643 11.4893 10.6797 11.2979 10.4336 11.2979Z"></path>
+                <!-- Document icon SVG path -->
+                <path d="M3 1h8a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V2a1 1 0 011-1z"></path>
             </svg>
         '''
     html += '</span>'
@@ -142,9 +168,15 @@ def render_page_tree(page):
     # Page title
     html += f'<a href="{page_url}" class="page-title">{page["name"]}</a>'
 
-    # Action buttons (hidden by default)
-    html += '''
+    # Action buttons
+    html += f'''
         <div class="action-buttons">
+            <span class="button refresh-button" onclick="refreshPageTree('{page["id"]}')">
+                <!-- Refresh icon SVG -->
+                <svg fill="#000000" width="16px" height="16px" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M497.408 898.56c-.08-.193-.272-.323-.385-.483l-91.92-143.664c-6.528-10.72-20.688-14.527-31.728-8.512l-8.193 5.04c-11.007 6-10.767 21.537-4.255 32.256l58.927 91.409c-5.024-1.104-10.096-2-15.056-3.296-103.184-26.993-190.495-96.832-239.535-191.6-46.336-89.52-55.04-191.695-24.512-287.743 30.512-96.048 99.775-174.464 189.295-220.784 15.248-7.888 21.2-26.64 13.312-41.856-7.872-15.264-26.64-21.231-41.855-13.327-104.272 53.952-184.4 145.28-219.969 257.152C45.982 485.008 56.11 604.033 110.078 708.29c57.136 110.336 158.832 191.664 279.024 223.136 1.36.352 2.784.56 4.16.911l-81.311 41.233c-11.008 6.032-14.657 19.631-8.128 30.351l3.152 8.176c6.56 10.72 17.84 14.527 28.815 8.512L484.622 944.4c.193-.128.385-.096.578-.224l9.984-5.456c5.52-3.024 9.168-7.969 10.624-13.505 1.52-5.52.815-11.663-2.448-16.991zm416.496-577.747c-57.056-110.304-155.586-191.63-275.762-223.118-8.56-2.24-17.311-3.984-26.048-5.712l79.824-40.48c11.008-6.033 17.568-19.632 11.04-30.369l-3.153-8.16c-6.56-10.736-20.752-14.528-31.727-8.528L519.262 80.654c-.176.112-.384.08-.577.208l-9.967 5.472c-5.537 3.04-9.168 7.967-10.624 13.503-1.52 5.52-.816 11.648 2.464 16.976l5.92 9.712c.096.192.272.305.384.497l91.92 143.648c6.512 10.736 20.688 14.528 31.712 8.513l7.216-5.025c11.008-6 11.727-21.536 5.231-32.24l-59.2-91.856c13.008 2 25.968 4.416 38.624 7.76 103.232 27.04 187.393 96.864 236.4 191.568 46.32 89.519 55.024 191.695 24.48 287.728-30.511 96.047-96.655 174.448-186.174 220.816-15.233 7.887-21.168 26.607-13.28 41.87 5.519 10.64 16.335 16.768 27.599 16.768 4.8 0 9.664-1.12 14.272-3.488 104.272-53.936 181.248-145.279 216.816-257.119 35.536-111.904 25.393-230.929-28.574-335.152z"/>
+                </svg>
+            </span>
             <span class="button dots-button" onclick="showContextMenu(event, '{page["id"]}')">
                 <!-- Three-dot icon -->
                 <svg class="icon dots-icon" viewBox="0 0 13 3">
@@ -169,55 +201,35 @@ def render_page_tree(page):
     # Subpages
     if has_children:
         html += '<ul class="nav flex-column ml-3 subpage-list" style="display: none;">'
-        for child in page['children']:
+        for child in page.get('children', []):
             html += render_page_tree(child)
         html += '</ul>'
     html += '</li>'
     return html
-    
 
 
-def get_pages():
-    pages = []
-    for page_info in config['pages']:
-        page_id = page_info['page_id']
-        page_name = get_page_title(page_id)
-        page_data = {
-            'id': page_id,
-            'name': page_name,
-            'has_children': True  # 假设顶层页面有子页面，前端可以根据需要进一步获取
-        }
-        pages.append(page_data)
-    return pages
-def get_page_title(page_id):
-    page = notion.pages.retrieve(page_id=page_id)
-    if 'properties' in page and 'title' in page['properties']:
-        title_property = page['properties']['title']['title']
-        page_name = ''.join([t['plain_text'] for t in title_property]) if title_property else 'Untitled'
-    else:
-        page_name = 'Untitled'
-    return page_name
+@app.route('/refresh_page_tree/<page_id>')
+def refresh_page_tree(page_id):
+    try:
+        # Update the node's children in the cache
+        update_node_children_in_cache(page_id)
+        # Re-render the page tree starting from this node
+        page_tree = get_cached_page_tree()
+        page = find_page_in_cache(page_id, page_tree)
+        if page:
+            html = render_page_tree(page)
+            return jsonify({'success': True, 'html': html})
+        else:
+            return jsonify({'success': False, 'message': 'Page not found in cache'})
+    except Exception as e:
+        print(f"Error refreshing page tree for page {page_id}: {e}")
+        return jsonify({'success': False, 'message': str(e)})
 
 
 @app.route('/get_sub_pages/<page_id>')
 def get_sub_pages(page_id):
-    sub_pages = []
-    try:
-        # 获取直接子页面
-        children = notion.blocks.children.list(block_id=page_id, page_size=100)['results']
-        for child in children:
-            if child['type'] == 'child_page':
-                sub_page_id = child['id']
-                sub_page = {
-                    'id': sub_page_id,
-                    'name': child['child_page']['title'],
-                    'has_children': child['has_children']
-                }
-                sub_pages.append(sub_page)
-    except Exception as e:
-        print(f"Error fetching children for page {page_id}: {e}")
+    sub_pages = get_sub_pages_from_cache(page_id)
     return jsonify(sub_pages)
-
 
 def update_notion_page_content(page_id, new_blocks):
     # 删除原有内容
@@ -230,60 +242,6 @@ def update_notion_page_content(page_id, new_blocks):
     # 添加新的块
     for block in new_blocks:
         notion.blocks.children.append(block_id=page_id, children=[block])
-
-def inline_element_to_rich_text(element):
-    rich_text = []
-
-    for item in element.descendants:
-        if isinstance(item, str):
-            text_content = item.strip()
-            if text_content:
-                rich_text.append({
-                    "type": "text",
-                    "text": {
-                        "content": text_content
-                    }
-                })
-        elif item.name == 'strong' or item.name == 'b':
-            text_content = item.get_text()
-            rich_text.append({
-                "type": "text",
-                "text": {
-                    "content": text_content
-                },
-                "annotations": {
-                    "bold": True
-                }
-            })
-        elif item.name == 'em' or item.name == 'i':
-            text_content = item.get_text()
-            rich_text.append({
-                "type": "text",
-                "text": {
-                    "content": text_content
-                },
-                "annotations": {
-                    "italic": True
-                }
-            })
-        elif item.name == 'a':
-            text_content = item.get_text()
-            href = item.get('href')
-            rich_text.append({
-                "type": "text",
-                "text": {
-                    "content": text_content,
-                    "link": {
-                        "url": href
-                    }
-                }
-            })
-        # 添加更多的 inline 元素处理
-        else:
-            # 处理其他未支持的 inline 元素
-            pass
-    return rich_text
-
 
 
 # timestamp in %Y%m%d%H%M%S + milliseconds
@@ -324,7 +282,14 @@ def upload_image():
 @app.route('/delete_page/<page_id>', methods=['POST'])
 def delete_page(page_id):
     try:
+        #get parent id from cache
+        # parent = find_parent_in_cache(page_id,None)
+        parent = find_parent_in_cache(page_id)
+        parent_id = parent['id']
         notion.pages.update(page_id=page_id, archived=True)
+        # Update cache
+        update_parent_children_in_cache(parent_id)
+
         return jsonify({'success': True})
     except Exception as e:
         print(f"Error deleting page {page_id}: {e}")
@@ -348,6 +313,9 @@ def rename_page_route(page_id):
                 }
             }
         )
+        # Update cache
+        update_page_name_in_cache(page_id, new_title)
+
         return jsonify({'success': True})
     except Exception as e:
         print(f"Error renaming page {page_id}: {e}")
@@ -358,6 +326,7 @@ def duplicate_page(page_id):
     try:
         # Retrieve the original page
         original_page = notion.pages.retrieve(page_id)
+        parent_id = original_page['parent']['page_id']
         properties = original_page['properties']
         children = notion.blocks.children.list(block_id=page_id)['results']
         
@@ -381,6 +350,8 @@ def duplicate_page(page_id):
             },
             children=children
         )
+        # Update cache
+        update_parent_children_in_cache(parent_id)
         return jsonify({'success': True})
     except Exception as e:
         print(f"Error duplicating page {page_id}: {e}")
@@ -406,6 +377,8 @@ def create_sub_page():
                 }
             }
         )
+        # Update cache
+        update_node_children_in_cache(parent_id)
         return jsonify({'success': True})
     except Exception as e:
         print(f"Error creating subpage under {parent_id}: {e}")
