@@ -99,6 +99,19 @@ function fetchSubPages(sublist, pageId) {
     fetch('/get_sub_pages/' + pageId)
         .then(response => response.json())
         .then(data => {
+            if (data.length === 0) {
+                // 如果没有子页面，显示 "No Pages inside"
+                const li = document.createElement('li');
+                li.className = 'nav-item no-pages';
+                const noPagesDiv = document.createElement('div');
+                noPagesDiv.className = 'nav-link';
+                noPagesDiv.style.color = 'grey';
+                noPagesDiv.style.fontStyle = 'italic';
+                noPagesDiv.style.fontSize = '12px';
+                noPagesDiv.textContent = 'No Pages inside';
+                li.appendChild(noPagesDiv);
+                sublist.appendChild(li);
+            } else {
             data.forEach(function(page) {
                 const li = document.createElement('li');
                 li.className = 'nav-item';
@@ -151,8 +164,23 @@ function fetchSubPages(sublist, pageId) {
                 dotsButton.className = 'button dots-button';
                 dotsButton.onclick = function(event) { showContextMenu(event, page.id); };
                 // 添加 dots-icon
-                // ...
-
+                // 添加 dots-icon
+                const dotsIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                dotsIcon.setAttribute('class', 'icon dots-icon');
+                dotsIcon.setAttribute('viewBox', '0 0 13 3');
+                const dotsG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                const dotPaths = [
+                    'M3,1.5A1.5,1.5,0,1,1,1.5,0,1.5,1.5,0,0,1,3,1.5Z',
+                    'M8,1.5A1.5,1.5,0,1,1,6.5,0,1.5,1.5,0,0,1,8,1.5Z',
+                    'M13,1.5A1.5,1.5,0,1,1,11.5,0,1.5,1.5,0,0,1,13,1.5Z'
+                ];
+                dotPaths.forEach(function(d) {
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', d);
+                    dotsG.appendChild(path);
+                });
+                dotsIcon.appendChild(dotsG);
+                dotsButton.appendChild(dotsIcon);
                 actionButtons.appendChild(dotsButton);
 
                 // Plus button
@@ -160,11 +188,15 @@ function fetchSubPages(sublist, pageId) {
                 plusButton.className = 'button plus-button';
                 plusButton.onclick = function() { addSubPage(page.id); };
                 // 添加 plus-icon
-                // ...
-
+                const plusIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                plusIcon.setAttribute('class', 'icon plus-icon');
+                plusIcon.setAttribute('viewBox', '0 0 14 14');
+                const plusPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                plusPath.setAttribute('d', 'M2 7.16357C2 7.59692 2.36011 7.95093 2.78735 7.95093H6.37622V11.5398C6.37622 11.9731 6.73022 12.3271 7.16357 12.3271C7.59692 12.3271 7.95093 11.9731 7.95093 11.5398V7.95093H11.5398C11.9731 7.95093 12.3271 7.59692 12.3271 7.16357C12.3271 6.73022 11.9731 6.37622 11.5398 6.37622H7.95093V2.78735C7.95093 2.36011 7.59692 2 7.16357 2C6.73022 2 6.37622 2.36011 6.37622 2.78735V6.37622H2.78735C2.36011 6.37622 2 6.73022 2 7.16357Z');
+                plusIcon.appendChild(plusPath);
+                plusButton.appendChild(plusIcon);
                 actionButtons.appendChild(plusButton);
                 navLink.appendChild(actionButtons);
-
                 li.appendChild(navLink);
 
                 // Subpage list
@@ -175,6 +207,7 @@ function fetchSubPages(sublist, pageId) {
 
                 sublist.appendChild(li);
             });
+        }
         });
 }
 
