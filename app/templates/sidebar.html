@@ -311,7 +311,7 @@ function duplicatePage() {
 function addSubPage(parentPageId) {
     const newTitle = prompt('Enter title for new subpage:');
     if (newTitle) {
-        fetch('/create_sub_page/', {
+        fetch('/newpag/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ parent_id: parentPageId, title: newTitle })
