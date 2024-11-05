@@ -357,7 +357,7 @@ def duplicate_page(page_id):
         print(f"Error duplicating page {page_id}: {e}")
         return jsonify({'success': False})
 
-@app.route('/newpag/', methods=['POST'])
+@app.route('/inserslid/', methods=['POST'])
 def create_sub_page():
     data = request.json
     parent_id = data.get('parent_id')
