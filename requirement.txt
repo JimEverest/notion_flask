@@ -1,2 +1,2 @@
 
-pip install flask flask-session notion-client beautifulsoup4 boto3 markupsafe
+pip install flask flask-session notion-client beautifulsoup4 boto3 markupsafe minio

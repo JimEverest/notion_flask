@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SlideModel Clone</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/stylesppt.css') }}">
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="Sm-header">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light" style="background-color: #007ee5 !important;">
+            <a class="navbar-brand" href="#">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="SlideModel logo" width="237" height="45">
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" 
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item"><a class="nav-link" href="/login">login</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">signup</a></li>
+                    <!-- 其他导航项 -->
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Section Top -->
+    <section class="section-top py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-7 col-md-12">
+                    <h1 class="pb-3">Find PowerPoint Templates for your presentations</h1>
+                    <p class="pb-3">Explore editable PowerPoint templates and presentation slide themes. Communicate your ideas clearly and engage your audience.</p>
+                    <form class="section-search" role="search" action="#" method="get">
+                        <div class="input-group">
+                            <input class="form-control" autofocus name="s" type="text" placeholder="PowerPoint templates" value="">
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-warning text-white" aria-label="Search PowerPoint Templates">
+                                    <span class="hide-md">search</span>
+                                    <i class="fas fa-search hide-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <p class="pt-3 section-popular">
+                        <span>Hot: 
+                            <a href="#">slide deck</a>, 
+                            <a href="#">pitch deck</a>, 
+                            <a href="#">roadmap</a>
+                        </span>
+                    </p>
+                </div>
+                <div class="col-lg-5 d-none d-lg-block">
+                    <img src="{{ url_for('static', filename='images/powerpoint-templates.webp') }}" alt="Presentation PowerPoint template" class="img-fluid powerpoint-template-preview" loading="eager">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured PowerPoint Templates -->
+    <section class="featured-templates py-5">
+        <div class="Sm-home-title clearfix">
+            <h2 class="float-left fw-light">Featured PowerPoint Templates</h2>
+        </div>
+        <div class="row download-tag-featured-templates">
+            <!-- 模板项示例 -->
+            <div class="col-lg-3 col-sm-6 mt-4">
+                <div class="item" itemscope itemtype="https://schema.org/CreativeWork">
+                    <a href="#" class="item-thumbnail" aria-label="Download Business Proposal PowerPoint Template">
+                        <img src="{{ url_for('static', filename='images/60009-01-business-proposal-powerpoint-template-1-558x314.webp') }}" 
+                             class="img-fluid wp-post-image" alt="Business Proposal PowerPoint Template" loading="eager">
+                    </a>
+                    <div class="item-content">
+                        <h3><a href="#">Ikigai PowerPoint Diagram Template</a></h3>
+                        <div style="font-size: 12px; padding-bottom: 5px;">The Ikigai PowerPoint Diagram template is a 4 element Venn Diagram template of the Japanese concept.</div>
+                        <div class="category">Template Backgrounds</div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="col-lg-3 col-sm-6 mt-4">
+                <div class="item" itemscope itemtype="https://schema.org/CreativeWork">
+                    <a href="#" class="item-thumbnail" aria-label="Download Business Proposal PowerPoint Template">
+                        <img src="{{ url_for('static', filename='images/22664-01-risk-appetite-and-tolerance-powerpoint-template-16x9-1-558x314.webp') }}" 
+                             class="img-fluid wp-post-image" alt="Business Proposal PowerPoint Template" loading="eager">
+                    </a>
+                    <div class="item-content">
+                        <h3><a href="#">5W1H Framework PowerPoint Diagram</a></h3>
+                        <div style="font-size: 12px; padding-bottom: 5px;">The 5W1H Framework PowerPoint Diagram is a management model template to solve problems.</div>
+                        <div class="category">Template Backgrounds</div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="col-lg-3 col-sm-6 mt-4">
+                <div class="item" itemscope itemtype="https://schema.org/CreativeWork">
+                    <a href="#" class="item-thumbnail" aria-label="Download Business Proposal PowerPoint Template">
+                        <img src="{{ url_for('static', filename='images/22597-18-draft-watermark-seals-powerpoint-template-16x9-1-558x314.jpg') }}" 
+                             class="img-fluid wp-post-image" alt="Business Proposal PowerPoint Template" loading="eager">
+                    </a>
+                    <div class="item-content">
+                        <h3><a href="#">Accomplishments Diagram for PowerPoint</a></h3>
+                        <div style="font-size: 12px; padding-bottom: 5px;">The Accomplishments Diagram for PowerPoint is an outstanding presentation of graphics for statement.</div>
+                        <div class="category">Template Backgrounds</div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="col-lg-3 col-sm-6 mt-4">
+                <div class="item" itemscope itemtype="https://schema.org/CreativeWork">
+                    <a href="#" class="item-thumbnail" aria-label="Download Business Proposal PowerPoint Template">
+                        <img src="{{ url_for('static', filename='images/22648-01-key-objectives-powerpoint-template-16x9-1-558x314.webp') }}" 
+                             class="img-fluid wp-post-image" alt="Business Proposal PowerPoint Template" loading="eager">
+                    </a>
+                    <div class="item-content">
+                        <h3><a href="#">Business Proposal PowerPoint Template</a></h3>
+                        <div style="font-size: 12px; padding-bottom: 5px;">The Business Proposal PowerPoint Template is a presentation deck of the latest design trends.</div>
+                        <div class="category">Template Backgrounds</div>
+                    </div>
+                </div>
+            </div>
+            <!-- 复制并修改以上模板项以添加更多模板 -->
+            <!-- 示例模板项结束 -->
+        </div>
+
+
+
+
+
+
+
+
+
+    </section>
+
+    <!-- Latest PowerPoint Presentation Templates -->
+    <section class="latest-templates py-5">
+        <div class="Sm-home-title clearfix">
+            <h2 class="float-left fw-light">Latest PowerPoint Presentation Templates</h2>
+        </div>
+        <div class="row">
+            <!-- 最新模板项示例 -->
+            <div class="col-lg-3 col-sm-6 mt-4">
+                <div class="item" itemscope itemtype="https://schema.org/CreativeWork">
+                    <a href="#" class="item-thumbnail" aria-label="Business Lines PowerPoint Template">
+                        <img src="{{ url_for('static', filename='images/22697-01-3d-data-comparison-columns-infographic-powerpoint-template-16x9-1-558x314.webp') }}" 
+                             class="img-fluid wp-post-image" alt="Editable Business Lines PowerPoint Template" loading="eager">
+                    </a>
+                    <div class="item-content">
+                        <h3><a href="#">Business Lines PowerPoint Template</a></h3>
+                        <div class="category">Business PowerPoint Templates</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-sm-6 mt-4">
+                <div class="item" itemscope itemtype="https://schema.org/CreativeWork">
+                    <a href="#" class="item-thumbnail" aria-label="Business Lines PowerPoint Template">
+                        <img src="{{ url_for('static', filename='images/60009-01-business-proposal-powerpoint-template-1-558x314.webp') }}" 
+                             class="img-fluid wp-post-image" alt="Editable Business Lines PowerPoint Template" loading="eager">
+                    </a>
+                    <div class="item-content">
+                        <h3><a href="#">Business Lines PowerPoint Template</a></h3>
+                        <div class="category">Business PowerPoint Templates</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-sm-6 mt-4">
+                <div class="item" itemscope itemtype="https://schema.org/CreativeWork">
+                    <a href="#" class="item-thumbnail" aria-label="Business Lines PowerPoint Template">
+                        <img src="{{ url_for('static', filename='images/77110-01-business-lines-powerpoint-template-16x9-1-558x314.webp') }}" 
+                             class="img-fluid wp-post-image" alt="Editable Business Lines PowerPoint Template" loading="eager">
+                    </a>
+                    <div class="item-content">
+                        <h3><a href="#">Business Lines PowerPoint Template</a></h3>
+                        <div class="category">Business PowerPoint Templates</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-sm-6 mt-4">
+                <div class="item" itemscope itemtype="https://schema.org/CreativeWork">
+                    <a href="#" class="item-thumbnail" aria-label="Business Lines PowerPoint Template">
+                        <img src="{{ url_for('static', filename='images/85080-01-company-profile-powerpoint-template-16x9-1-558x314.webp') }}" 
+                             class="img-fluid wp-post-image" alt="Editable Business Lines PowerPoint Template" loading="eager">
+                    </a>
+                    <div class="item-content">
+                        <h3><a href="#">Business Lines PowerPoint Template</a></h3>
+                        <div class="category">Business PowerPoint Templates</div>
+                    </div>
+                </div>
+            </div>
+            <!-- 复制并修改以上模板项以添加更多最新模板 -->
+            <!-- 示例模板项结束 -->
+        </div>
+    </section>
+
+
+    <!-- Value Proposition -->
+    <section class="Sm-valueproposition py-5" style="background-color: #eee;">
+        <div class="container">
+            <div class="row pt-5 pb-5 text-center">
+                <div class="col-md-12">
+                    <h2 style="font-size: 28px;">Create beautiful presentations with visually appealing PowerPoint templates</h2>
+                    <p>Use our 100% editable presentation templates to create awesome slides that wow your audience.</p>
+                </div>
+                <div class="col-md-4">
+                    <img src="{{ url_for('static', filename='images/presentation-templates-find.webp') }}" 
+                         class="img-fluid pb-3 pt-3" alt="Find the perfect presentation template and slide design for PowerPoint presentations" loading="eager">
+                    <h3>1. Find a presentation template</h3>
+                    <p>Browse our curated selection of 50,000+ presentation templates to match any topic or specific need. Quickly pinpoint the ideal design, setting the stage for your presentation content with a new style.</p>
+                </div>
+                <div class="col-md-4">
+                    <img src="{{ url_for('static', filename='images/presentation-templates-edit.webp') }}" 
+                         class="img-fluid pb-3 pt-3" alt="Edit and customize the PowerPoint templates to craft the ideal presentation" loading="eager">
+                    <h3>2. Download &amp; edit the presentation</h3>
+                    <p>Customize your chosen template with ease, adjusting visuals and incorporating data to reflect your unique brand and message. Our 100% editable slides ensure your presentation is both professional and personalized.</p>
+                </div>
+                <div class="col-md-4">
+                    <img src="{{ url_for('static', filename='images/presentation-templates-present.webp') }}" 
+                         class="img-fluid pb-3 pt-3" alt="Present your presentation to an audience. Wow it!" loading="eager">
+                    <h3>3. Present to your audience</h3>
+                    <p>Engage and captivate your audience with a eye-catching presentation design. Our PowerPoint templates are crafted to enhance your narrative, ensuring a smooth and impactful delivery that leaves a lasting impression.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Related Content (PowerPoint Tutorials) -->
+    <section class="Sm-related" style="background-color: #313438;">
+        <div class="Sm-bloglist container py-5">
+            <h2 class="mb-3 fw-light" style="color:#fff;">PowerPoint Tutorials</h2>
+            <p class="text-white">Learn and get the best tips on how to use Microsoft PowerPoint and edit your presentation templates professionally.</p>
+            <div class="row">
+                <!-- 教程项示例 -->
+
+                <div class="col-md-4">
+                    <div class="entry card">
+                        <a class="post-thumbnail mb-3" href="#">
+                            <img src="{{ url_for('static', filename='images/94004-02-corporate-company-profile-powerpoint-template-16x9-1-558x314.webp') }}" 
+                                 class="img-fluid" alt="How to Create a Slide Deck in PowerPoint" loading="eager">
+                        </a>
+                        <div class="card-body">
+                            <h5><a href="#" class="text-dark">How to Create a Slide Deck in PowerPoint</a></h5>
+                            <p>Improve your presentation skills with our guide on how to create a slide deck in PowerPoint. Content to include, recommended templates, and more!</p>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="col-md-4">
+                    <div class="entry card">
+                        <a class="post-thumbnail mb-3" href="#">
+                            <img src="{{ url_for('static', filename='images/94007-01-digital-business-transformation-powerpoint-template-16x9-1-558x314.jpg') }}" 
+                                 class="img-fluid" alt="How to Create a Slide Deck in PowerPoint" loading="eager">
+                        </a>
+                        <div class="card-body">
+                            <h5><a href="#" class="text-dark">How to Create a Slide Deck in PowerPoint</a></h5>
+                            <p>Improve your presentation skills with our guide on how to create a slide deck in PowerPoint. Content to include, recommended templates, and more!</p>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="col-md-4">
+                    <div class="entry card">
+                        <a class="post-thumbnail mb-3" href="#">
+                            <img src="{{ url_for('static', filename='images/inertia-powerpoint-template-558x314.webp') }}" 
+                                 class="img-fluid" alt="How to Create a Slide Deck in PowerPoint" loading="eager">
+                        </a>
+                        <div class="card-body">
+                            <h5><a href="#" class="text-dark">How to Create a Slide Deck in PowerPoint</a></h5>
+                            <p>Improve your presentation skills with our guide on how to create a slide deck in PowerPoint. Content to include, recommended templates, and more!</p>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- 复制并修改以上教程项以添加更多教程 -->
+                <!-- 教程项示例结束 -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="Sm-footer pt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-sm-6">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="SlideModel logo" width="237" height="45" class="mb-4">
+                    <p class="footer-about mb-4">#1 provider of premium presentation templates for PowerPoint &amp; Google Slides.</p>
+                    <ul class="list-inline social-links">
+                        <li class="list-inline-item"><a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a></li>
+                        <li class="list-inline-item"><a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a></li>
+                        <li class="list-inline-item"><a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a></li>
+                        <li class="list-inline-item"><a href="#" aria-label="Pinterest"><i class="fab fa-pinterest-p"></i></a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <div class="mb-4 h5"><span>COMPANY</span></div>
+                    <ul class="list-unstyled">
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Plans &amp; Pricing</a></li>
+                        <li><a href="#">AI Presentation Maker</a></li>
+                        <li><a href="#">Customer Reviews</a></li>
+                        <li><a href="#">Free PowerPoint Templates</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <div class="mb-4 h5"><span>SERVICES</span></div>
+                    <ul class="list-unstyled">
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#" rel="nofollow">Education &amp; Nonprofits</a></li>
+                        <li><a href="#" rel="nofollow">Privacy Policy</a> &amp; <a href="#">Terms of Use</a></li>
+                        <li><a href="#" rel="nofollow">End User License Agreement</a></li>
+                        <li><a href="#" rel="nofollow">DMCA Policy</a></li>
+                        <li><a href="#" rel="nofollow">Affiliates</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <div class="mb-4 h5"><span>CONTACT</span> US</div>
+                    <ul class="list-unstyled">
+                        <li><i class="footer-icon fas fa-phone-volume"></i><a href="tel:+14082605548">+1 (408) 260-5548</a></li>
+                        <li><i class="footer-icon fas fa-headphones-alt"></i><a href="#">Contact Support</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="colophon mt-5">
+            <div class="container">
+                <p class="small mb-0 py-3 text-center">© 2024 SlideModel. All Right Reserved</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS, Popper.js, and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/scripts-ppt.js') }}"></script>
+</body>
+</html>

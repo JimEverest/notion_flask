@@ -48,6 +48,10 @@ s3_client = S3Client(
     secure=config['minio']['secure']
 )
 
+@app.route('/ppt', methods=['GET', 'POST'])
+def ppt():
+    return render_template('ppt.html')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -71,13 +75,13 @@ def login():
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('login'))
+    return redirect(url_for('ppt'))
 
 
 @app.route('/')
 def index():
     if 'username' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('ppt'))
     page_tree = get_cached_page_tree() # get_page_tree()
     return render_template('index.html', page_tree=page_tree)
 
@@ -85,7 +89,7 @@ def index():
 @app.route('/page/<page_id>', methods=['GET', 'POST'])
 def view_page(page_id):
     if 'username' not in session: 
-        return redirect(url_for('login'))
+        return redirect(url_for('ppt'))
     user_role = session.get('role')
     user_permissions = config['roles'][user_role]['operation']
     if request.method == 'POST':
@@ -382,3 +386,4 @@ def create_sub_page():
     except Exception as e:
         print(f"Error creating subpage under {parent_id}: {e}")
         return jsonify({'success': False})
+

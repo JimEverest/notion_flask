@@ -1,0 +1,221 @@
+/* 自定义样式 */
+
+/* Header 样式 */
+.Sm-header .navbar-brand img {
+    max-height: 50px;
+}
+
+.Sm-header .nav-link {
+    color: #000;
+    margin-left: 15px;
+}
+
+.Sm-header .nav-link:hover {
+    color: #007bff;
+}
+
+/* Section Top */
+.section-top {
+    background-color: #f8f9fa;
+}
+
+.section-top h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.section-top p {
+    font-size: 1.1rem;
+}
+
+.section-search .form-control {
+    height: 50px;
+    font-size: 16px;
+}
+
+.section-search .btn {
+    height: 50px;
+}
+
+.section-popular a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.section-popular a:hover {
+    text-decoration: underline;
+}
+
+/* Featured Templates */
+.featured-templates .Sm-home-title h2 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+}
+
+.featured-templates .item {
+    border: 1px solid #e0e0e0;
+    padding: 15px;
+    border-radius: 5px;
+    transition: box-shadow 0.3s;
+    background-color: #fff;
+}
+
+.featured-templates .item:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.featured-templates .item img {
+    border-radius: 5px;
+}
+
+.featured-templates .item-content h3 a {
+    color: #000;
+    text-decoration: none;
+}
+
+.featured-templates .item-content h3 a:hover {
+    color: #007bff;
+}
+
+/* Latest Templates */
+.latest-templates .Sm-home-title h2 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+}
+
+.latest-templates .item {
+    border: 1px solid #e0e0e0;
+    padding: 15px;
+    border-radius: 5px;
+    transition: box-shadow 0.3s;
+    background-color: #fff;
+}
+
+.latest-templates .item:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.latest-templates .item img {
+    border-radius: 5px;
+}
+
+.latest-templates .item-content h3 a {
+    color: #000;
+    text-decoration: none;
+}
+
+.latest-templates .item-content h3 a:hover {
+    color: #007bff;
+}
+
+/* Pagination */
+.Sm-navigation .pagination {
+    margin-top: 20px;
+}
+
+.Sm-navigation .page-item.active .page-link {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.Sm-navigation .page-link {
+    color: #007bff;
+}
+
+.Sm-navigation .page-link:hover {
+    color: #0056b3;
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+}
+
+/* Value Proposition */
+.Sm-valueproposition h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+.Sm-valueproposition h3 {
+    font-size: 1.5rem;
+    margin-top: 20px;
+}
+
+.Sm-valueproposition p {
+    font-size: 1rem;
+    color: #555;
+}
+
+.Sm-valueproposition img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Related Content */
+.Sm-related h2 {
+    font-size: 2rem;
+    margin-bottom: 15px;
+}
+
+.Sm-related p {
+    font-size: 1rem;
+    color: #fff;
+}
+
+.Sm-related .card {
+    background-color: #42464d;
+    border: none;
+    color: #fff;
+}
+
+.Sm-related .card h5 a {
+    color: #fff;
+    text-decoration: none;
+}
+
+.Sm-related .card h5 a:hover {
+    color: #007bff;
+}
+
+.Sm-related .card-body p {
+    color: #ccc;
+}
+
+/* Footer */
+.Sm-footer {
+    background-color: #f8f9fa;
+    padding-top: 40px;
+}
+
+.Sm-footer .footer-about {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.Sm-footer .social-links a {
+    color: #555;
+    margin-right: 10px;
+}
+
+.Sm-footer .social-links a:hover {
+    color: #007bff;
+}
+
+.Sm-footer ul li a {
+    color: #555;
+    text-decoration: none;
+}
+
+.Sm-footer ul li a:hover {
+    color: #007bff;
+}
+
+.colophon {
+    background-color: #e9ecef;
+    text-align: center;
+    padding: 15px 0;
+}
+
+.colophon p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #555;
+}
