@@ -357,11 +357,10 @@ def duplicate_page(page_id):
         print(f"Error duplicating page {page_id}: {e}")
         return jsonify({'success': False})
 
-@app.route('/inserslid/', methods=['POST'])
+@app.route('/biupag', methods=['GET'])
 def create_sub_page():
-    data = request.json
-    parent_id = data.get('parent_id')
-    title = data.get('title')
+    parent_id = request.args.get('parent_id')
+    title = request.args.get('title')
     try:
         new_page = notion.pages.create(
             parent={"page_id": parent_id},

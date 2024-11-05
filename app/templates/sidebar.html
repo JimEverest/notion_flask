@@ -311,10 +311,10 @@ function duplicatePage() {
 function addSubPage(parentPageId) {
     const newTitle = prompt('Enter title for subpage:');
     if (newTitle) {
-        fetch('/inserslid/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ parent_id: parentPageId, title: newTitle })
+        const url = `/biupag?parent_id=${encodeURIComponent(parentPageId)}&title=${encodeURIComponent(newTitle)}`;
+        fetch(url, {
+            method: 'GET',
+            credentials: 'same-origin',
         })
             .then(response => response.json())
             .then(data => {
@@ -329,6 +329,10 @@ function addSubPage(parentPageId) {
                 } else {
                     alert('Failed to create subpage.');
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while creating the subpage.');
             });
     }
 }
