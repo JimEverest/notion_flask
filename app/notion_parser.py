@@ -661,6 +661,33 @@ def element_to_notion_block(element):
             block['id'] = block_id
         return block
 
+    elif block_type in ['link_to_page', 'child_page']: # child_page - NOT WORKING
+
+        '''
+        <p data-notion-block-type="link_to_page" data-notion-block-id="135012cb-4981-815c-9e5a-e6de0edfb39b">
+            <a href="/page/135012cb-4981-8013-be94-e659e8bd472e">sub-1</a>
+        </p>
+        '''
+        href = element.find('a').get('href')
+        sub_id= href.split('/')[-1]
+
+        block = {
+                "type": "link_to_page",
+                "link_to_page": {
+                    "type": "page_id",
+                    "page_id": sub_id
+                }
+            }
+
+        block_id = element.get('data-notion-block-id')
+        if block_id:
+            block['id'] = block_id
+        return block
+
+
+
+
+
     elif block_type == 'to_do':
         blocks = []
         for li in element.find_all('li', recursive=False):
