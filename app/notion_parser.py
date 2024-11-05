@@ -609,6 +609,10 @@ def element_to_notion_block(element):
             block_type = 'heading_2'
         elif element.name == 'h3':
             block_type = 'heading_3'
+        elif element.name == 'h4':
+            block_type = 'heading_3'
+        elif element.name == 'h5':
+            block_type = 'heading_3'
         elif element.name == 'ul' and 'todo-list' in element.get('class', []):
             block_type = 'to_do'
         elif element.name == 'ul':
