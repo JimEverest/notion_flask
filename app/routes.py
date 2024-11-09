@@ -26,7 +26,7 @@ from .notion_parser import (
     update_node_children_in_cache,
     find_parent_in_cache
 )
-
+import copy
 
 
 
@@ -86,6 +86,39 @@ def index():
     return render_template('index.html', page_tree=page_tree)
 
 
+def append_blocks(notion_client, parent_block_id, blocks):
+    """
+    Recursively append blocks (with potential nested children) to a parent block.
+
+    :param notion_client: The initialized Notion client.
+    :param parent_block_id: The ID of the parent block (page or block).
+    :param blocks: A list of blocks to append to the parent block.
+    """
+    # Prepare blocks for appending, removing 'children' but keeping a reference
+    blocks_to_append = []
+    children_map = []  # Keep track of blocks with children and their indices
+
+    for idx, block in enumerate(blocks):
+        # Deep copy to avoid modifying the original block
+        block_copy = copy.deepcopy(block)
+        children = block_copy.pop('children', None)
+        blocks_to_append.append(block_copy)
+        if children:
+            children_map.append((children, idx))
+
+    # Append blocks to the parent block
+    response = notion_client.blocks.children.append(
+        block_id=parent_block_id,
+        children=blocks_to_append
+    )
+    appended_blocks = response['results']
+
+    # Recursively append children to their respective parent blocks
+    for children, idx in children_map:
+        child_block_id = appended_blocks[idx]['id']
+        append_blocks(notion_client, child_block_id, children)
+
+
 @app.route('/page/<page_id>', methods=['GET', 'POST'])
 def view_page(page_id):
     if 'username' not in session: 
@@ -105,7 +138,8 @@ def view_page(page_id):
             for child in existing_children['results']:
                 notion.blocks.update(block_id=child['id'], archived=True)
             # 追加新的子块
-            notion.blocks.children.append(block_id=page_id, children=new_blocks)
+            append_blocks(notion, page_id, new_blocks)
+            # notion.blocks.children.append(block_id=page_id, children=new_blocks)
 
 
             flash('页面已更新')

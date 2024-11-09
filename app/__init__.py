@@ -9,3 +9,4 @@ Session(app)
 
 from app import minio_helper
 from app import routes
+from app import color_converter

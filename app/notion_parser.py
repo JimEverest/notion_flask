@@ -4,6 +4,7 @@ from notion_client import Client
 from bs4 import BeautifulSoup, NavigableString, Tag
 import json
 import time
+from .color_converter import hsl_to_css_color_name_notion
 # 加载配置
 config = {}
 with open('app/config/config.json') as config_file:
@@ -441,14 +442,14 @@ def parse_block(block):
                     <span contenteditable="false">{checkbox}</span>
                     <span class="todo-list__label__description">{text}</span>
                 </span>
-            </li>
-        </ul>
         '''
+
         # 处理子块（如果有）
         if block['has_children']:
             children = notion.blocks.children.list(block_id=block_id)['results']
             for child in children:
                 content += parse_block(child)
+        content+= '</li></ul>'
 
     elif block_type == 'divider':
         content += f'<hr data-notion-block-type="divider" data-notion-block-id="{block_id}"/>'
@@ -568,6 +569,13 @@ def rich_text_to_html(rich_text_array):
             text = f'<u>{text}</u>'
         if annotations.get('strikethrough'):
             text = f'<s>{text}</s>'
+        if annotations.get('color') and annotations['color'] != 'default':
+            # check if color ends with 'background'：
+            if annotations['color'].endswith('_background'):
+                background_color = annotations['color'].replace('_background', '')
+                text = f'<span style="background-color:{background_color}">{text}</span>'
+            else:
+                text = f'<span style="color:{annotations["color"]}">{text}</span>'
         if annotations.get('code'):
             text = f'<code>{text}</code>'
         if href:
@@ -1013,7 +1021,7 @@ def html_to_rich_text2(element):
 def html_to_rich_text(element):
     rich_text = []
 
-    for content in element.descendants:
+    for content in element.contents:
         if isinstance(content, NavigableString):
             text_content = str(content).strip()
             if text_content:
@@ -1036,13 +1044,34 @@ def html_to_rich_text(element):
                 })
         elif isinstance(content, Tag):
             text_content = content.get_text()
+            # f'<span class="colortag" style="color:{annotations["color"]}">{text}</span>'
+            text_color = "default"
+            # check if color is set, by checking 
+            # 1. if is a span with classname:colortag
+            # 2. the style <color> attribute
+            if content.name == 'span':# and 'colortag' in content.get('class', []):
+                # check if color exist and is set:
+                if 'style' in content.attrs and 'color' in content['style'] and 'background-color' not in content['style']:
+                    text_color = content.get('style', '').replace('color:', '').replace(';', '')
+                    # check if hsl color, convert to css color name
+                    if 'hsl' in text_color:
+                        text_color = hsl_to_css_color_name_notion(text_color)
+                    else:
+                        text_color = text_color
+                # check if background color exist and is set:
+                elif 'style' in content.attrs and 'background-color' in content['style']:
+                    text_color = content.get('style', '').replace('background-color:', '').replace(';', '')
+                    if 'hsl' in text_color:
+                        text_color = hsl_to_css_color_name_notion(text_color) + '_background'
+                    else:
+                        text_color = text_color + '_background'
             annotations = {
                 "bold": content.name in ['strong', 'b'],
                 "italic": content.name in ['em', 'i'],
                 "strikethrough": content.name == 's',
                 "underline": content.name == 'u',
                 "code": content.name == 'code',
-                "color": "default"
+                "color": text_color
             }
             href = content.get('href') if content.name == 'a' else None
             rich_text.append({
