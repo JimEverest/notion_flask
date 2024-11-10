@@ -587,7 +587,7 @@ def html_to_notion_blocks(html_content):
     soup = BeautifulSoup(html_content, 'html.parser')
     blocks = []
     elements=soup.find_all(recursive=False)
-    for element in soup.find_all(recursive=False):
+    for element in elements:
         block = element_to_notion_block(element)
         
         # Check if block is a list
@@ -674,7 +674,13 @@ def element_to_notion_block(element):
         for child_element in element.find_all(recursive=False):
             if child_element != summary:
                 child_block = element_to_notion_block(child_element)
-                if child_block:
+
+                # Check if a child-block is a list(eg. ul, ol)
+                if isinstance(child_block, list):
+                    for item in child_block:
+                        if isinstance(item, dict) and 'type' in item:  # Ensure each item in list has 'type'
+                            block["children"].append(item) # blocks.append(item)
+                elif child_block:
                     block["children"].append(child_block)
         return block
 
