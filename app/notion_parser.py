@@ -659,6 +659,40 @@ def element_to_notion_block(element):
             block['id'] = block_id
         return block
 
+    #<details data-notion-block-type="toggle"> <summary>111</summary> <p data-notion-block-type="paragraph"> Write something </p> </details>
+    elif block_type == 'toggle':
+        summary = element.find('summary')
+        title_text = summary.get_text() if summary else ''
+        block = {
+            "type": "toggle",
+            "toggle": {
+                "rich_text": html_to_rich_text(summary)
+            },
+            "children": []
+        }
+        # 处理子元素
+        for child_element in element.find_all(recursive=False):
+            if child_element != summary:
+                child_block = element_to_notion_block(child_element)
+                if child_block:
+                    block["children"].append(child_block)
+        return block
+
+
+
+    elif block_type == 'toggle':
+        block = {
+            "type": "toggle",
+            "toggle": {
+                "rich_text": html_to_rich_text(element.find('summary')),
+                "color": "default"
+            }
+        }
+        block_id = element.get('data-notion-block-id')
+        if block_id:
+            block['id'] = block_id
+        return block
+
     elif block_type in ['heading_1', 'heading_2', 'heading_3']:
         block = {
             "type": block_type,

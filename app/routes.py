@@ -101,7 +101,11 @@ def append_blocks(notion_client, parent_block_id, blocks):
     for idx, block in enumerate(blocks):
         # Deep copy to avoid modifying the original block
         block_copy = copy.deepcopy(block)
-        children = block_copy.pop('children', None)
+        children=None
+        try:
+            children = block_copy.pop('children', None)
+        except:
+            pass
         blocks_to_append.append(block_copy)
         if children:
             children_map.append((children, idx))

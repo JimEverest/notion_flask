@@ -27,6 +27,7 @@
         <textarea id="editor" name="content">{{ content|safe }}</textarea>
         <button type="submit" class="btn btn-primary mt-2">保存v1</button>
     </form>
+    <button id="insert-toggle-block-button">Insert Toggle Block</button>
     <script>
 
 // super build features: 
@@ -208,6 +209,24 @@
             })
             .then(editor => {
                 window.editor = editor;
+
+                // Add the event listener for the external button here
+                document.getElementById('insert-toggle-block-button').addEventListener('click', function() {
+                    editor.model.change(writer => {
+                        const htmlString = `<details data-notion-block-type="toggle">
+                <summary><span style="font-size:22px;">Toggle Block Title</span></summary>
+                <p data-notion-block-type="paragraph">
+                    Write something
+                </p>
+            </details>
+            <hr>`;
+
+                        const viewFragment = editor.data.processor.toView(htmlString);
+                        const modelFragment = editor.data.toModel(viewFragment);
+
+                        editor.model.insertContent(modelFragment, editor.model.document.selection);
+                    });
+                });
             })
             .catch(error => {
                 console.error('There was a problem initializing the editor.', error);
