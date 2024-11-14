@@ -4,7 +4,7 @@ from notion_client import Client
 from bs4 import BeautifulSoup, NavigableString, Tag
 import json
 import time
-from .color_converter import hsl_to_css_color_name_notion
+from .color_converter import hsl_to_css_color_name_notion, hex_to_css_color_name_limited
 # 加载配置
 config = {}
 with open('app/config/config.json') as config_file:
@@ -1096,6 +1096,13 @@ def html_to_rich_text(element):
                     # check if hsl color, convert to css color name
                     if 'hsl' in text_color:
                         text_color = hsl_to_css_color_name_notion(text_color)
+                    # check if rgb hex (#rrggbb or #rgb) color, convert to css color name
+                    elif '#' in text_color:
+                        text_color = hex_to_css_color_name_limited(text_color)
+                    elif 'black' in text_color:
+                        text_color = "default"
+                    elif 'white' in text_color:
+                        text_color = "default"
                     else:
                         text_color = text_color
                 # check if background color exist and is set:

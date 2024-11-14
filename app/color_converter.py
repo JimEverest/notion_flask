@@ -43,9 +43,9 @@ def hsl_to_color_name(h, s, l):
         return "green"
     elif 166 <= h <= 255:
         return "blue"
-    elif 256 <= h <= 290:
+    elif 256 <= h <= 310:
         return "purple"
-    elif 291 <= h <= 344:
+    elif 322 <= h <= 344:
         return "pink"
     else:
         return "default"
@@ -60,6 +60,86 @@ def hsl_to_css_color_name_notion(hsl_str):
         return color_name
     except Exception as e:
         return "default"
+
+
+def parse_hex(hex_str):
+    """
+    解析十六进制颜色字符串，返回 (r, g, b)
+    支持 #rgb 和 #rrggbb 格式
+    """
+    hex_str = hex_str.strip().lower()
+    pattern = r'^#([0-9a-f]{3}|[0-9a-f]{6})$'
+    match = re.match(pattern, hex_str)
+    if not match:
+        raise ValueError(f"Invalid hex color format: {hex_str}")
+    
+    hex_value = match.group(1)
+    if len(hex_value) == 3:
+        # 扩展为6位
+        hex_value = ''.join([c*2 for c in hex_value])
+    
+    r = int(hex_value[0:2], 16)
+    g = int(hex_value[2:4], 16)
+    b = int(hex_value[4:6], 16)
+    
+    return r, g, b
+
+
+def rgb_to_hsl(r, g, b):
+    """
+    将 RGB 值转换为 HSL
+    r, g, b: 0-255
+    返回 h, s, l，其中：
+        h: 0-360
+        s: 0-100
+        l: 0-100
+    """
+    r /= 255
+    g /= 255
+    b /= 255
+    
+    max_val = max(r, g, b)
+    min_val = min(r, g, b)
+    l = (max_val + min_val) / 2
+    
+    if max_val == min_val:
+        h = s = 0  # 无色
+    else:
+        d = max_val - min_val
+        s = d / (2 - max_val - min_val) if l > 0.5 else d / (max_val + min_val)
+        
+        if max_val == r:
+            h = (g - b) / d + (6 if g < b else 0)
+        elif max_val == g:
+            h = (b - r) / d + 2
+        elif max_val == b:
+            h = (r - g) / d + 4
+        h /= 6
+    
+    h_deg = round(h * 360)
+    s_pct = round(s * 100)
+    l_pct = round(l * 100)
+    
+    return h_deg % 360, s_pct, l_pct
+
+def hex_to_css_color_name_limited(hex_str):
+    """
+    将十六进制颜色字符串转换为指定的 CSS 颜色名称
+    """
+    try:
+        r, g, b = parse_hex(hex_str)
+        h, s, l = rgb_to_hsl(r, g, b)
+        color_name = hsl_to_color_name(h, s, l)
+        return color_name
+    except Exception:
+        return "default"
+
+
+
+
+
+
+
 
 # # 示例用法
 # if __name__ == "__main__":
